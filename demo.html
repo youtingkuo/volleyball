@@ -187,6 +187,21 @@ var Ball = function (scene){
     var n = new THREE.Vector3(0, 1, 0);
 		var p0 = new THREE.Vector3(0, 0.2, 0); 
 		if (!ball.collisionDetection(ball.mesh.position, p0, n)){	
+    console.log(this.mesh.position.x + " " + this.mesh.position.z);
+    	if(referee.whoLastHit === 1) {
+      	if(this.mesh.position.x > -8 && this.mesh.position.x < 0 && this.mesh.position.z < 4 && this.mesh.position.z > -4)
+        	referee.rHandUp = true;
+        else
+      		referee.lHandUp = true;
+        referee.whoLastHit = 0;
+      }
+      else if(referee.whoLastHit === 2) {
+      	if(this.mesh.position.x < 8 && this.mesh.position.x > 0 && this.mesh.position.z < 4 && this.mesh.position.z > -4)
+        	referee.lHandUp = true;
+        else 
+      		referee.rHandUp = true;
+        referee.whoLastHit = 0;
+      }
     	//referee.playing = false; //遊戲停止
       //referee.resetPlayerPosition();
       player1.state = 7;
@@ -722,7 +737,21 @@ player.prototype.predictY = function(v0, theta, phi, ye){
 
   
 player.prototype.update = function(dT){
-	if(this.state === 0)return;
+	if(player1.state === 0 && player2.state === 0 && npcPlayer1.state === 0 && npcPlayer2.state === 0) {
+  	if(referee.whoServe === 1) {
+    	referee.whoLastHit = 2;
+    	referee.whoServe = 2;
+			ball.isOn = false;
+  		referee.playing = true;
+  		var tmp = Math.random();
+      //console.log(tmp);
+  		if(tmp > 0.5)
+				npcPlayer1.startJump(new THREE.Vector3(4, 2.51, 0),new THREE.Vector3(0, 5, 0),0.1);  
+  		else 
+				npcPlayer1.startServe(new THREE.Vector3(4, 2.51, 0));
+    }
+  	return;
+  }
 	if(this.state === 1){
   	this.serve(dT);
     return;//必要，不然會被下面的調整手臂洗掉機器人的手的位置
@@ -770,6 +799,7 @@ player.prototype.update = function(dT){
       var r1 = r.clone().sub(n.clone().multiplyScalar(r.clone().dot(n))).lengthSq();
       if (Math.abs(r1) <= 0.16) { //球在板子(手)的範圍內      	
       	if(this.isLeft) {
+        	referee.whoLastHit = 2;
         	//this.passTarget(new THREE.Vector3(2, 0, 0));
           var tmp = this.predict(new THREE.Vector3(-2, 0, 0)); //算出到(x, 0, z)的速度與角度
           var jumpTarget = this.predictY(tmp[0], tmp[1], tmp[2], 3.7);
@@ -795,6 +825,7 @@ player.prototype.update = function(dT){
           }
         }
         else {
+        	referee.whoLastHit = 1;
         	//this.passTarget(new THREE.Vector3(-2, 0, 0));
           var tmp = this.predict(new THREE.Vector3(2, 0, 0)); //算出到(x, 0, z)的速度與角度
           var jumpTarget = this.predictY(tmp[0], tmp[1], tmp[2], 3.7);
@@ -853,12 +884,18 @@ player.prototype.update = function(dT){
     	var r = ball.mesh.position.clone().sub(p0);
       var r1 = r.clone().sub(n.clone().multiplyScalar(r.clone().dot(n))).lengthSq();
       if (Math.abs(r1) <= 0.16) { //球在板子(手)的範圍內      	
-      	var x = Math.random() * 3.5 + 4;
+      	var x = Math.random() * 3.5 + 3;
         //var x = 6;
         var z = Math.random() * 7 - 3.5;
         //var z = 1;
-        if(this.isLeft) this.passTarget(new THREE.Vector3(x, 0, z));
-        else this.passTarget(this.attackTarget);
+        if(this.isLeft) {
+        	referee.whoLastHit = 2;
+        	this.passTarget(new THREE.Vector3(x, 0, z));
+        }
+        else {
+        	referee.whoLastHit = 1;
+        	this.passTarget(this.attackTarget);
+        }
         this.state = 2;
         
         slapSound.pause();
@@ -899,10 +936,12 @@ player.prototype.update = function(dT){
 	if(this.jumpWaitTime<0 && this.jumpState === 0){
 		//console.log(ball.mesh.position.y);
 		  if(this.isLeft) {
+      	referee.whoLastHit = 2;
       	var x = Math.random() * 1.5;
-       	var z = Math.random() * 3 - 1.5;
+       	var z = Math.random() * 2 - 1;
       }
       else {
+      	referee.whoLastHit = 1;
       	if(attackPosRange === 0) var z = 2;
   			else if(attackPosRange === 1) var z = 0;
   			else if(attackPosRange ===2) var z = -2;
@@ -960,13 +999,25 @@ player.prototype.update = function(dT){
   
   else if(this.state === 7){ //回到起始位置
   	//追落點
-    if(this.isLeft) {
-    	if(this.num === 1) this.chaseTarget = new THREE.Vector3(-9, 1.1, 0);
-      else this.chaseTarget = new THREE.Vector3(-4, 1.1, 2);
+    if(referee.whoServe === 1) {
+    	if(this.isLeft) {
+    		if(this.num === 1) this.chaseTarget = new THREE.Vector3(-9, 1.1, 0);
+      	else this.chaseTarget = new THREE.Vector3(-4, 1.1, 2);
+    	}
+    	else {
+    		if(this.num === 1) this.chaseTarget = new THREE.Vector3(4, 1.1, -2);
+      	else this.chaseTarget = new THREE.Vector3(4, 1.1, 2);
+    	}
     }
     else {
-    	if(this.num === 1) this.chaseTarget = new THREE.Vector3(9, 1.1, 0);
-      else this.chaseTarget = new THREE.Vector3(4, 1.1, 2);
+    	if(this.isLeft) {
+    		if(this.num === 1) this.chaseTarget = new THREE.Vector3(-4, 1.1, -2);
+      	else this.chaseTarget = new THREE.Vector3(-4, 1.1, 2);
+    	}
+    	else {
+    		if(this.num === 1) this.chaseTarget = new THREE.Vector3(9, 1.1, 0);
+      	else this.chaseTarget = new THREE.Vector3(4, 1.1, 2);
+    	}
     }
 		this.board.target.copy(this.chaseTarget);
 		this.board.pos.copy(this.board.mesh.position);
@@ -1029,7 +1080,77 @@ player.prototype.passTarget = function(end){
 var referee = function() {
 	//若接發球方贏得一球，除了得一分之外，並取得發球權。而只要發球權交換，獲得發球權球隊球員也必須輪替。
   this.playing = false;
+  this.whoServe; //1:player 2:npc
+  this.whoLastHit;
+  this.lHandUp = false;
+  this.rHandUp = false;
   
+  this.hitBallMachine = new THREE.Object3D();
+  THREE.ImageUtils.crossOrigin = '';
+	var geometry = new THREE.CylinderGeometry(0.24, 0.24, 1.2, 32);
+	var material = new THREE.MeshLambertMaterial({color: 0x00ff00});
+	this.body = new THREE.Object3D();
+	var mesh = new THREE.Mesh(geometry, material);
+	mesh.position.set(0, 0.6, 0);
+	this.body.add(mesh);
+	this.hitBallMachine.add(this.body);
+  
+	geometry = new THREE.SphereGeometry(0.25, 32, 32);
+  material = new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/f9dNfsj.jpg')});
+	var head = new THREE.Mesh(geometry, material);
+	head.position.set(0, 1.4, 0);
+	this.body.add(head);
+  
+  material = new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/yNp5hMw.jpg')});
+	this.hitBallMachineHandLeft = new THREE.Object3D();
+	this.body.add(this.hitBallMachineHandLeft);
+	this.hitBallMachineHandLeft.rotation.z = 2.7;
+  this.hitBallMachineHandLeft.position.x = -0.3;
+	this.hitBallMachineHandLeft.position.y = 1.1;
+	var armLeft = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1, 32), material);
+	armLeft.position.set(0, 0.5, 0);
+	this.hitBallMachineHandLeft.add(armLeft);
+  var cylinder = new THREE.Mesh( new THREE.CylinderGeometry( 0.04, 0.04, 1.2, 32 ), new THREE.MeshBasicMaterial( {color: 0x804000}) );
+  cylinder.rotation.z = 1.7;
+  cylinder.position.set(0.4, 1.1, 0);
+	this.hitBallMachineHandLeft.add( cylinder );
+
+	var plane = new THREE.Mesh( new THREE.PlaneGeometry( 0.4, 0.7, 32 ), new THREE.MeshBasicMaterial( {color: 0xff0000, side: 	THREE.DoubleSide} ) );
+	plane.rotation.z = 1.7 + Math.PI/2;
+  plane.position.set(0.75, 1.5, 0);
+	this.hitBallMachineHandLeft.add( plane );
+	
+	this.hitBallMachineHandRight = new THREE.Object3D();
+	this.body.add(this.hitBallMachineHandRight);
+  this.hitBallMachineHandRight.rotation.z = Math.PI - 2.7;
+  this.hitBallMachineHandRight.position.x = 0.3;
+	this.hitBallMachineHandRight.position.y = 1.1;
+	var armRight = armLeft.clone();
+	armRight.position.set(0, -0.5, 0);
+	this.hitBallMachineHandRight.add(armRight);
+  var cylinder2 = new THREE.Mesh( new THREE.CylinderGeometry( 0.04, 0.04, 1.2, 32 ), new THREE.MeshBasicMaterial( {color: 0x804000}) );
+  cylinder2.rotation.z = 1.5;
+  cylinder2.position.set(0.4, -1.1, 0);
+	this.hitBallMachineHandRight.add( cylinder2 );
+
+	var plane2 = new THREE.Mesh( new THREE.PlaneGeometry( 0.4, 0.7, 32 ), new THREE.MeshBasicMaterial( {color: 0xff0000, side: 	THREE.DoubleSide} ) );
+	plane2.rotation.z = 1.5 + Math.PI/2;
+  plane2.position.set(0.75, -1.5, 0);
+	this.hitBallMachineHandRight.add( plane2 );
+  
+	var handLeft = new THREE.Mesh(new THREE.SphereGeometry(0.1, 32, 32), material);
+	handLeft.position.set(0, 1, 0);
+	this.hitBallMachineHandLeft.add(handLeft);
+	handRight = handLeft.clone();
+	handRight.position.set(0, -1, 0);
+	this.hitBallMachineHandRight.add(handRight);
+  	
+	var foot = new THREE.Mesh(new THREE.SphereGeometry(0.4, 32, 32), material);
+	this.hitBallMachine.add(foot);
+  
+	this.hitBallMachine.rotation.y = -0.6;
+	this.hitBallMachine.position.set(0, 0.4, 5.5);
+	scene.add(this.hitBallMachine);
 }
 
 referee.prototype.update = function() {
@@ -1039,6 +1160,11 @@ referee.prototype.update = function() {
     player1.state = 0;
     player2.state = 0;
   }
+  this.leftHandUp();
+	this.rightHandUp();
+  this.leftHandDown();
+  this.rightHandDown();
+
 }
 
 referee.prototype.resetPlayerPosition = function() {
@@ -1056,6 +1182,32 @@ referee.prototype.resetPlayerPosition = function() {
  	player2.bump();
 }
 
+referee.prototype.leftHandUp = function() {
+	if(this.lHandUp) {
+  	if(this.hitBallMachineHandLeft.rotation.z > 1.4)
+    	this.hitBallMachineHandLeft.rotation.z -= 0.03;
+		else this.lHandUp = false;
+  }
+}
+referee.prototype.leftHandDown = function() {
+	if(!this.lHandUp) {
+		if(this.hitBallMachineHandLeft.rotation.z < 2.7)
+    	this.hitBallMachineHandLeft.rotation.z += 0.03;
+  }
+}
+referee.prototype.rightHandUp = function() {
+	if(this.rHandUp) {
+  	if(this.hitBallMachineHandRight.rotation.z < Math.PI - 1.4)
+    	this.hitBallMachineHandRight.rotation.z += 0.03;
+    else this.rHandUp = false;
+  }
+}
+referee.prototype.rightHandDown = function() {
+	if(!this.rHandUp) {
+		if(this.hitBallMachineHandRight.rotation.z > Math.PI - 2.7)
+  		this.hitBallMachineHandRight.rotation.z -= 0.03;
+  }
+}
 ///////////////////////////////////////////////////////////////////////////
 var coach = function(npc) {
   this.isOn = false;
@@ -1310,14 +1462,17 @@ $("#spike").click(function() {
   else this.style.backgroundColor='#dddddd';
 });
 $('#start').click(function() {
-	ball.isOn = false;
-  referee.playing = true;
+	referee.whoLastHit = 1;
+	if(player1.state === 0) {
+		referee.whoServe = 1;
+		ball.isOn = false;
+  	referee.playing = true;
   
-  if(spike)
-		player1.startJump(new THREE.Vector3(-4, 2.51, 0),new THREE.Vector3(0, 5, 0),0.1);  
-  else 
-		player1.startServe(new THREE.Vector3(-4, 2.51, 0));
-  
+  	if(spike)
+			player1.startJump(new THREE.Vector3(-4, 2.51, 0),new THREE.Vector3(0, 5, 0),0.1);  
+  	else 
+			player1.startServe(new THREE.Vector3(-4, 2.51, 0));
+  }
 });
 
 init();
@@ -1351,7 +1506,7 @@ function init() {
   playerCoach = new coach(0);
   
   npcPlayer1 = new player(1, 1);  
-  npcPlayer1.board.mesh.position.set(-9, 1.1, 0);
+  npcPlayer1.board.mesh.position.set(-4, 1.1, -2);
  npcPlayer1.robot.hitBallMachine.position.set(npcPlayer1.board.mesh.position.x-0.8, 0.4, npcPlayer1.board.mesh.position.z);
   npcPlayer1.standByPosition = new THREE.Vector3(-4, 1.1, -2);
   npcPlayer1.isLeft = true;
@@ -1418,37 +1573,37 @@ function animate() {
   player2.attackTarget = new THREE.Vector3(x, 0, z);
   
   //狀態顯示
-  if(npcPlayer1.state === 0) npcPlayer1.sprite.text = "待機";
-  else if(npcPlayer1.state === 1) npcPlayer1.sprite.text = "發球";
+  if(npcPlayer1.state === 0) npcPlayer1.sprite.text = "ready";
+  else if(npcPlayer1.state === 1) npcPlayer1.sprite.text = "serve";
   else if(npcPlayer1.state === 2) npcPlayer1.sprite.text = "stand by";
-  else if(npcPlayer1.state === 3) npcPlayer1.sprite.text = "做球";
-  else if(npcPlayer1.state === 4) npcPlayer1.sprite.text = "攻擊";
-  else if(npcPlayer1.state === 5) npcPlayer1.sprite.text = "殺球";
-  else if(npcPlayer1.state === 6) npcPlayer1.sprite.text = "殺球";
+  else if(npcPlayer1.state === 3) npcPlayer1.sprite.text = "set";
+  else if(npcPlayer1.state === 4) npcPlayer1.sprite.text = "bump";
+  else if(npcPlayer1.state === 5) npcPlayer1.sprite.text = "spike";
+  else if(npcPlayer1.state === 6) npcPlayer1.sprite.text = "spike";
   
-  if(npcPlayer2.state === 0) npcPlayer2.sprite.text = "待機";
-  else if(npcPlayer2.state === 1) npcPlayer2.sprite.text = "發球";
+  if(npcPlayer2.state === 0) npcPlayer2.sprite.text = "ready";
+  else if(npcPlayer2.state === 1) npcPlayer2.sprite.text = "serve";
   else if(npcPlayer2.state === 2) npcPlayer2.sprite.text = "stand by";
-  else if(npcPlayer2.state === 3) npcPlayer2.sprite.text = "做球";
-  else if(npcPlayer2.state === 4) npcPlayer2.sprite.text = "攻擊";
-  else if(npcPlayer2.state === 5) npcPlayer2.sprite.text = "殺球";
-  else if(npcPlayer2.state === 6) npcPlayer2.sprite.text = "殺球";
+  else if(npcPlayer2.state === 3) npcPlayer2.sprite.text = "set";
+  else if(npcPlayer2.state === 4) npcPlayer2.sprite.text = "bump";
+  else if(npcPlayer2.state === 5) npcPlayer2.sprite.text = "spike";
+  else if(npcPlayer2.state === 6) npcPlayer2.sprite.text = "spike";
   
-  if(player1.state === 0) player1.sprite.text = "待機";
-  else if(player1.state === 1) player1.sprite.text = "發球";
+  if(player1.state === 0) player1.sprite.text = "ready";
+  else if(player1.state === 1) player1.sprite.text = "serve";
   else if(player1.state === 2) player1.sprite.text = "stand by";
-  else if(player1.state === 3) player1.sprite.text = "做球";
-  else if(player1.state === 4) player1.sprite.text = "攻擊";
-  else if(player1.state === 5) player1.sprite.text = "殺球";
-  else if(player1.state === 6) player1.sprite.text = "殺球";
+  else if(player1.state === 3) player1.sprite.text = "set";
+  else if(player1.state === 4) player1.sprite.text = "bump";
+  else if(player1.state === 5) player1.sprite.text = "spike";
+  else if(player1.state === 6) player1.sprite.text = "spike";
   
-  if(player2.state === 0) player2.sprite.text = "待機";
-  else if(player2.state === 1) player2.sprite.text = "發球";
+  if(player2.state === 0) player2.sprite.text = "ready";
+  else if(player2.state === 1) player2.sprite.text = "serve";
   else if(player2.state === 2) player2.sprite.text = "stand by";
-  else if(player2.state === 3) player2.sprite.text = "做球";
-  else if(player2.state === 4) player2.sprite.text = "攻擊";
-  else if(player2.state === 5) player2.sprite.text = "殺球";
-  else if(player2.state === 6) player2.sprite.text = "殺球";
+  else if(player2.state === 3) player2.sprite.text = "set";
+  else if(player2.state === 4) player2.sprite.text = "bump";
+  else if(player2.state === 5) player2.sprite.text = "spike";
+  else if(player2.state === 6) player2.sprite.text = "spike";
   
   player1.sprite.position.copy(player1.robot.hitBallMachine.position);
   player1.sprite.position.x -= 0.5;
