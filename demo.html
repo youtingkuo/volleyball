@@ -89,20 +89,17 @@ body {
 <script>
 var BasicScene = function (scene){
     var light1 = new THREE.PointLight();
-    light1.position.set(0, 5, -8);
+    light1.position.set(0, 10, -30);
     scene.add(light1);
     var light2 = new THREE.PointLight();
-    light2.position.set(0, 5, 8);
+    light2.position.set(0, 10, 30);
     scene.add(light2);
     var light3 = new THREE.PointLight();
-    light3.position.set(-13, 3, 0);
+    light3.position.set(-30, 10, 0);
     scene.add(light3);
     var light4 = new THREE.PointLight();
-    light4.position.set(13, 3, 0);
+    light4.position.set(30, 10, 0);
     scene.add(light4);
-    var light5 = new THREE.PointLight();
-    light5.position.set(11, 3, 3);
-    scene.add(light5);
       
     THREE.ImageUtils.crossOrigin = '';
     var geometry = new THREE.CylinderGeometry( 50, 50, 50, 32, 32 );
@@ -402,7 +399,7 @@ var robot = function (scene, npc, num){
     else var bodyColor = THREE.ImageUtils.loadTexture('https://i.imgur.com/fDrp2FJ.png');
   }
 	var geometry = new THREE.CylinderGeometry(0.24, 0.24, 1.2, 32);
-	var material = new THREE.MeshLambertMaterial({map: bodyColor});
+	var material = new THREE.MeshBasicMaterial({map: bodyColor});
 	this.body = new THREE.Object3D();
 	var mesh = new THREE.Mesh(geometry, material);
 	mesh.position.set(0, 0.6, 0);
@@ -410,13 +407,13 @@ var robot = function (scene, npc, num){
 	this.hitBallMachine.add(this.body);
   
 	geometry = new THREE.SphereGeometry(0.25, 32, 32);
-  if(npc) material = new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/tajmEfb.png')});
-  else material = new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/f9dNfsj.jpg')});
+  if(npc) material = new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/tajmEfb.png')});
+  else material = new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/f9dNfsj.jpg')});
 	var head = new THREE.Mesh(geometry, material);
 	head.position.set(0, 1.4, 0);
 	this.body.add(head);
   
-  material = new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/yNp5hMw.jpg')});
+  material = new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/yNp5hMw.jpg')});
 	this.hitBallMachineHandLeft = new THREE.Object3D();
 	this.body.add(this.hitBallMachineHandLeft);
 	this.hitBallMachineHandLeft.rotation.z = 0.25;
@@ -485,6 +482,8 @@ var player = function(npc, num) {
     
     //玩家操控的攻擊點
     this.attackTarget = new THREE.Vector3(-4, 0, 0);
+    //
+    this.preTarget = new THREE.Vector3(0, 0, 0);
     
     this.board = new Agent (new THREE.Vector3 (0, 0, 0), new THREE.Vector3(0,0,0));
     this.robot = new robot (scene, npc, this.num);
@@ -554,12 +553,12 @@ player.prototype.startJump = function(target,jumpV,waitTime){
 	this.jumpWaitTime = waitTime;
 }
 player.prototype.serve = function(dT){
-	this.normalServe();
+	this.normalServe(dT);
   this.jumpServe(dT);
 }
 
 
-player.prototype.normalServe = function(){
+player.prototype.normalServe = function(dT){
 		if (this.serveIsOn === false) return;
     //console.log(this.state);
 		var now = clock.getElapsedTime();
@@ -605,6 +604,15 @@ player.prototype.normalServe = function(){
       this.state = 2;///發完球變成stand by
       this.stateTarget = undefined;
     }
+    /////////
+    var gotTargetAngle = this.makeTargetAngle()/Math.PI*180%180;
+    var robotY = this.robot.hitBallMachine.rotation.y/Math.PI*180%180;
+      
+    if(gotTargetAngle>robotY)
+      	this.robot.hitBallMachine.rotation.y +=dT;
+    else
+      	this.robot.hitBallMachine.rotation.y -=dT;
+    ////////////
     if(this.isLeft === true){
       this.robot.hitBallMachineHandLeft.rotation.x = -1*this.serveAngleRight;//-1反過來，左右手也是
       this.robot.hitBallMachineHandRight.rotation.x = -1*this.serveAngleLeft; 
@@ -613,6 +621,7 @@ player.prototype.normalServe = function(){
     	this.robot.hitBallMachineHandLeft.rotation.x = this.serveAngleRight;
       this.robot.hitBallMachineHandRight.rotation.x = this.serveAngleLeft;  
     }
+    
 }
 
 player.prototype.jumpServe = function(dT){//dT其實是傳給jump用的，發球動作是用jumpStartTime
@@ -830,6 +839,75 @@ player.prototype.predictY = function(v0, theta, phi, ye){
   return [finalP,t];
 }
 
+player.prototype.makeTarget = function(){
+//npc判斷
+	
+  //predictMesh.position.clone();
+	if(this.state === 4||this.state === 5){
+    var x = Math.random() * 4.5 + 2.5;
+    var z = Math.random() * 6 - 3;
+    this.preTarget.copy(predictMesh.position);
+    if(this.isLeft){
+      if(x < 3) x++;
+      if(x < 3.5) {
+        if(z < 2 && z > -2) z = 2.5;
+      }
+      this.preTarget.set(x,0,z);
+      //this.faceTargetAngle = -1*Math.PI/2 - (Math.PI-phi)
+    }
+  }
+}
+
+player.prototype.makeTargetAngle = function(){
+	var robotPosTemp = new THREE.Vector3(0, 0, 0);
+  robotPosTemp.copy(this.robot.hitBallMachine.position);
+  if(this.isLeft===false)
+  	var temp = new THREE.Vector3(0, 0, -1);
+  else
+  	var temp = new THREE.Vector3(0, 0, 1);
+  var targetTemp = new THREE.Vector3(0, 0, 0);
+  if(this.state==3){
+  	if(this.isLeft == true){
+    	if(this.num === 1){
+      	targetTemp.copy(npcPlayer2.robot.hitBallMachine.position);
+  			var phi = 1* temp.angleTo(targetTemp.sub(robotPosTemp));
+  			return  phi;
+      }
+      else{
+      	targetTemp.copy(npcPlayer1.robot.hitBallMachine.position);
+  			var phi = 1* temp.angleTo(targetTemp.sub(robotPosTemp));
+  			return  phi;
+      }
+    }
+    else{
+    	if(this.num === 1){
+      	targetTemp.copy(player2.robot.hitBallMachine.position);
+  			var phi = 1* temp.angleTo(targetTemp.sub(robotPosTemp));
+  			return  phi;
+      }
+      else{
+      	targetTemp.copy(player1.robot.hitBallMachine.position);
+  			var phi = 1* temp.angleTo(targetTemp.sub(robotPosTemp));
+  			return  phi;
+      }
+    }
+  	
+  }
+  
+  else if(this.state === 1){
+  	targetTemp.copy(this.serveTarget);
+  	var phi = 1* temp.angleTo(targetTemp.sub(robotPosTemp));
+  	return  phi;
+  }
+  else{
+  	if(this.isLeft==false)
+    	targetTemp.copy(predictMesh.position);
+    else
+  		targetTemp.copy(this.preTarget);
+  	var phi = 1* temp.angleTo(targetTemp.sub(robotPosTemp));
+  	return  phi;
+  }
+}
   
 player.prototype.update = function(dT){
 	if(player1.state === 0 && player2.state === 0 && npcPlayer1.state === 0 && npcPlayer2.state === 0) {
@@ -860,6 +938,14 @@ player.prototype.update = function(dT){
 	//if(this.state === 0 || this.state === 1) return;
   
   else if(this.state === 2){ //standBy
+  //console.log(this.isLeft);
+	//console.log(this.robot.hitBallMachine.rotation.y);
+  	if(Math.abs(Math.PI/2-this.robot.hitBallMachine.rotation.y)>0.1){
+      if(this.robot.hitBallMachine.rotation.y<Math.PI/2)
+      	this.robot.hitBallMachine.rotation.y +=dT;
+      else
+      	this.robot.hitBallMachine.rotation.y -=dT;
+    }
   	this.board.target.copy(this.standByPosition);
   	this.board.pos.copy(this.board.mesh.position);
 		this.board.step(dT);
@@ -892,6 +978,15 @@ player.prototype.update = function(dT){
     	this.updateAngleRight +=  dT*3;
     
     }
+    var gotTargetAngle = this.makeTargetAngle()/Math.PI*180%180;
+    var robotY = this.robot.hitBallMachine.rotation.y/Math.PI*180%180;
+
+    //console.log(gotTargetAngle+" "+ robotY);
+    //this.robot.hitBallMachine.rotation.y = gotTargetAngle;
+    if(gotTargetAngle>robotY)
+      this.robot.hitBallMachine.rotation.y +=dT;
+    else
+      this.robot.hitBallMachine.rotation.y -=dT;
     
     if (!ball.collisionDetection(ball.mesh.position, p0, n)){	
     //球運動到跟板子(手)同平面
@@ -981,26 +1076,39 @@ player.prototype.update = function(dT){
     	this.updateAngleRight +=  dT*3;
     
     }
+    var robotPosTemp = new THREE.Vector3(0, 0, 0);
+    robotPosTemp.copy(this.robot.hitBallMachine.position);
+    if(robotPosTemp.sub(ball.mesh.position).length()<5 && this.preTarget.x==0 && this.preTarget.z==0){
+    	this.makeTarget();
+      //console.log("makeTarget fin");
+    }
+    
+    if(this.preTarget.x!=0 && this.preTarget.z!=0){
+    	var gotTargetAngle = this.makeTargetAngle()/Math.PI*180%180;
+      var robotY = this.robot.hitBallMachine.rotation.y/Math.PI*180%180;
+      
+      //console.log(gotTargetAngle+" "+ robotY);
+      //this.robot.hitBallMachine.rotation.y = gotTargetAngle;
+      if(gotTargetAngle>robotY)
+      	this.robot.hitBallMachine.rotation.y +=dT;
+      else
+      	this.robot.hitBallMachine.rotation.y -=dT;
+    }
+    
     if (!ball.collisionDetection(ball.mesh.position, p0, n)){	
     //球運動到跟板子(手)同平面
     	var r = ball.mesh.position.clone().sub(p0);
       var r1 = r.clone().sub(n.clone().multiplyScalar(r.clone().dot(n))).lengthSq();
-      if (Math.abs(r1) <= 0.16) { //球在板子(手)的範圍內      	
-      	var x = Math.random() * 4.5 + 2.5;
-        var z = Math.random() * 6 - 3;
-        if(this.isLeft) {
-        	referee.npcLastMode = 4;
-        	referee.whoLastHit = 2;
-          if(x < 3) x++;
-          if(x < 3.5) {
-          	if(z < 2 && z > -2) z = 2.5;
-          }
-        	this.passTarget(new THREE.Vector3(x, 0, z));
+      if (Math.abs(r1) <= 0.16) { //球在板子(手)的範圍內     
+        if(this.isLeft) {  
+        	this.passTarget(this.preTarget);
+          this.preTarget.set(0,0,0);
         }
         else {
         	referee.playerLastMode = 4;
         	referee.whoLastHit = 1;
         	this.passTarget(predictMesh.position.clone());
+          this.preTarget.set(0,0,0);
         }
         this.state = 2;
         
@@ -1024,6 +1132,9 @@ player.prototype.update = function(dT){
 	this.board.mesh.position.z = this.board.pos.z;
 	if(this.npc) var frontOrBack = -0.8;
 	else var frontOrBack = 0.8;	this.robot.hitBallMachine.position.set(this.board.mesh.position.x+frontOrBack, 0.4, this.board.mesh.position.z);
+  
+  
+  
   }
   
   else if(this.state === 5){ //殺球
@@ -1038,25 +1149,38 @@ player.prototype.update = function(dT){
 		//console.log(this.robot.handRight.localToWorld(new THREE.Vector3(0,0,0)));
 		
 	
+  var robotPosTemp = new THREE.Vector3(0, 0, 0);
+    robotPosTemp.copy(this.robot.hitBallMachine.position);
+    if(robotPosTemp.sub(ball.mesh.position).length()<3 && this.preTarget.x==0 && this.preTarget.z==0){
+    	this.makeTarget();
+      //console.log("makeTarget fin");
+    }
+    
+    if(this.preTarget.x!=0 && this.preTarget.z!=0){
+    	var gotTargetAngle = this.makeTargetAngle()/Math.PI*180%180;
+      var robotY = this.robot.hitBallMachine.rotation.y/Math.PI*180%180;
+      
+      //console.log(gotTargetAngle+" "+ robotY);
+      //this.robot.hitBallMachine.rotation.y = gotTargetAngle;
+      if(gotTargetAngle>robotY)
+      	this.robot.hitBallMachine.rotation.y +=dT;
+      else
+      	this.robot.hitBallMachine.rotation.y -=dT;
+    }
+  
 	if(this.jumpWaitTime<0 && this.jumpState === 0){
-    	var x = Math.random() * 4 + 3;
-      var z = Math.random() * 5 - 2.5;
-      if(x < 3.5) {
-          	if(z < 2 && z > -2) {
-            	if(z > 0) z = 2.5;
-              else z = -2.5;
-          }
-      }
 		  if(this.isLeft) {
       	referee.npcLastMode = 5;
       	referee.whoLastHit = 2;
-        this.passTarget(new THREE.Vector3(x, 0, z));
+        	this.passTarget(this.preTarget);
+          this.preTarget.set(0,0,0);
       }
       else {
       	referee.playerLastMode = 5;
       	x *= -1;
       	referee.whoLastHit = 1;
         this.passTarget(predictMesh.position.clone());
+        this.preTarget.set(0,0,0);
       }
 			this.jumpState = 1;
       spikeSound.pause();
@@ -1205,7 +1329,7 @@ var referee = function() {
   this.hitBallMachine = new THREE.Object3D();
   THREE.ImageUtils.crossOrigin = '';
 	var geometry = new THREE.CylinderGeometry(0.24, 0.24, 1.2, 32);
-	var material = new THREE.MeshLambertMaterial({color: 0x008000});
+	var material = new THREE.MeshBasicMaterial({color: 0x008000});
 	this.body = new THREE.Object3D();
 	var mesh = new THREE.Mesh(geometry, material);
 	mesh.position.set(0, 0.6, 0);
@@ -1213,12 +1337,12 @@ var referee = function() {
 	this.hitBallMachine.add(this.body);
   
 	geometry = new THREE.SphereGeometry(0.25, 32, 32);
-  material = new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/f9dNfsj.jpg')});
+  material = new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/f9dNfsj.jpg')});
 	var head = new THREE.Mesh(geometry, material);
 	head.position.set(0, 1.4, 0);
 	this.body.add(head);
   
-  material = new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/yNp5hMw.jpg')});
+  material = new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/yNp5hMw.jpg')});
 	this.hitBallMachineHandLeft = new THREE.Object3D();
 	this.body.add(this.hitBallMachineHandLeft);
 	this.hitBallMachineHandLeft.rotation.z = 2.7;
