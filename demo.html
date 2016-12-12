@@ -20,13 +20,13 @@ body {
   top: 77%;
   width: 80px;
   height: 80px;
-  background-image: url(https://i.imgur.com/OVO20Sn.png);
+  background-image: url(https://i.imgur.com/uewilpE.png);
   background-size: cover;
   transition: all 0.5s;
 }
 
 .pass.btn-active {
-  background-image: url(https://i.imgur.com/uewilpE.png);
+  background-image: url(https://i.imgur.com/OVO20Sn.png);
 }
 
 .spike {
@@ -36,13 +36,13 @@ body {
   top: 77%;
   width: 80px;
   height: 80px;
-  background-image: url(https://i.imgur.com/ehUlaMl.png);
+  background-image: url(https://i.imgur.com/fDoF6E1.png);
   background-size: cover;
   transition: all 0.5s;
 }
 
 .spike.btn-active {
-  background-image: url(https://i.imgur.com/fDoF6E1.png);
+  background-image: url(https://i.imgur.com/ehUlaMl.png);
 }
 
 .start {
@@ -60,7 +60,6 @@ body {
 .start.btn-active {
   background-color:#ffff00;
 }
-
 
 </style>
 </head>
@@ -843,7 +842,7 @@ player.prototype.makeTarget = function(){
 //npc§PÂ_
 	
   //predictMesh.position.clone();
-	if(this.state === 4||this.state === 5){
+	if(this.state === 4){
     var x = Math.random() * 4.5 + 2.5;
     var z = Math.random() * 6 - 3;
     this.preTarget.copy(predictMesh.position);
@@ -852,9 +851,25 @@ player.prototype.makeTarget = function(){
       if(x < 3.5) {
         if(z < 2 && z > -2) z = 2.5;
       }
-      this.preTarget.set(x,0,z);
+      this.preTarget.set(x,1.1,z);
       //this.faceTargetAngle = -1*Math.PI/2 - (Math.PI-phi)
     }
+  }
+  else if(this.state === 5) {
+	  var x = Math.random() * 4 + 3;
+      var z = Math.random() * 5 - 2.5;
+      if(x < 3.5) {
+          	if(z < 3 && z > -3) {
+            	if(z > 0) z = 3;
+              else z = -3;
+          }
+      }
+	  if(this.isLeft) {
+		  this.preTarget.set(x,0,z);
+      }
+      else {
+		this.preTarget.copy(predictMesh.position);
+      }
   }
 }
 
@@ -1177,7 +1192,6 @@ player.prototype.update = function(dT){
       }
       else {
       	referee.playerLastMode = 5;
-      	x *= -1;
       	referee.whoLastHit = 1;
         this.passTarget(predictMesh.position.clone());
         this.preTarget.set(0,0,0);
@@ -1678,6 +1692,7 @@ var npcPointTen, npcPointOne, playerPointTen, playerPointOne;
 var playerPoint1, playerPoint2, npcPoint1, npcPoint2;
 var nptAngle = 0, npoAngle = 0, pptAngle = 0, ppoAngle = 0;
 var nptPic = 10, npoPic = 10, pptPic = 10, ppoPic = 10;
+var nptWaitT = 0, npoWaitT = 0, pptWaitT = 0, ppoWaitT = 0;
 
 $("#pass").click(function() {
 	pass = !pass;
@@ -1855,14 +1870,20 @@ var fframe2 = new THREE.Mesh(new THREE.PlaneGeometry(6.3, 0.08), new THREE.MeshB
 		var material = new THREE.MeshBasicMaterial ({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/wymDw47.png'),  side:THREE.DoubleSide});
     npcPoint1 = new THREE.Mesh( new THREE.PlaneGeometry( 0.6, 0.9, 32 ), material );
     npcPointTen.add(npcPoint1);
-    npcPoint1.position.set(0, -0.55, 0);
+    npcPoint1.position.set(0, -0.55, 0.01);
+    var npcPointback1 = new THREE.Mesh( new THREE.PlaneGeometry( 0.6, 0.9, 32 ), new THREE.MeshBasicMaterial ({color: 0xffffff,  side:THREE.DoubleSide} ));
+    npcPointTen.add(npcPointback1);
+    npcPointback1.position.set(0, -0.55, -0.01);
     scoreBoard.add(npcPointTen);
     
     npcPointOne = new THREE.Object3D();
     npcPointOne.position.set(-0.4, 3.1, 0);
     npcPoint2 = npcPoint1.clone();
     npcPointOne.add(npcPoint2);
-    npcPoint2.position.set(0, -0.55, 0);
+    npcPoint2.position.set(0, -0.55, 0.01);
+    var npcPointback2 = new THREE.Mesh( new THREE.PlaneGeometry( 0.6, 0.9, 32 ), new THREE.MeshBasicMaterial ({color: 0xffffff,  side:THREE.DoubleSide} ));
+    npcPointOne.add(npcPointback2);
+    npcPointback2.position.set(0, -0.55, -0.01);
     scoreBoard.add(npcPointOne);
     
     playerPointTen = new THREE.Object3D();
@@ -1870,14 +1891,20 @@ var fframe2 = new THREE.Mesh(new THREE.PlaneGeometry(6.3, 0.08), new THREE.MeshB
     material = new THREE.MeshBasicMaterial ({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/8kte6xE.png'),  side:THREE.DoubleSide});
     playerPoint1 = new THREE.Mesh( new THREE.PlaneGeometry( 0.6, 0.9, 32 ), material );
     playerPointTen.add(playerPoint1);
-    playerPoint1.position.set(0, -0.55, 0);
+    playerPoint1.position.set(0, -0.55, 0.01);
+    var playerPointback1 = new THREE.Mesh( new THREE.PlaneGeometry( 0.6, 0.9, 32 ), new THREE.MeshBasicMaterial ({color: 0xffffff,  side:THREE.DoubleSide} ));
+    playerPointTen.add(playerPointback1);
+    playerPointback1.position.set(0, -0.55, -0.01);
     scoreBoard.add(playerPointTen);
     
     playerPointOne = new THREE.Object3D();
     playerPointOne.position.set(1.05, 3.1, 0);
     playerPoint2 = playerPoint1.clone();
     playerPointOne.add(playerPoint2);
-    playerPoint2.position.set(0, -0.55, 0);
+    playerPoint2.position.set(0, -0.55, 0.01);
+    var playerPointback2 = new THREE.Mesh( new THREE.PlaneGeometry( 0.6, 0.9, 32 ), new THREE.MeshBasicMaterial ({color: 0xffffff,  side:THREE.DoubleSide} ));
+    playerPointOne.add(playerPointback2);
+    playerPointback2.position.set(0, -0.55, -0.01);
     scoreBoard.add(playerPointOne);
   
   slapSound = document.getElementById ('slapSound');
@@ -1909,8 +1936,22 @@ function onDocumentMouseDown(event) {
 }
 
 function rotationPoint(obj3D, plane, angle, pic, who) {
+  if(who === 1) {
+  	if((clock.getElapsedTime() - nptWaitT) < 0) return;
+  }
+  else if(who === 2) {
+  	if((clock.getElapsedTime() - npoWaitT) < 0) return;
+  }
+  else if(who === 3) {
+  	if((clock.getElapsedTime() - pptWaitT) < 0) return;
+  }
+  else {
+  	if((clock.getElapsedTime() - ppoWaitT) < 0) return;
+  }
+  
+  
 	if(angle > 0) {
-  	if(angle <= Math.PI * 3 / 4) {
+  	if(angle <= Math.PI ) {
     	if(pic != 10) {
     		THREE.ImageUtils.crossOrigin = '';
         if(pic === 0) {
@@ -1993,9 +2034,25 @@ function rotationPoint(obj3D, plane, angle, pic, who) {
           	var material = new THREE.MeshBasicMaterial ({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/OAUHYyq.png'),  side:THREE.DoubleSide});
           }
         }
+        if(who === 1) {
+        	nptWaitT = 0.5 + clock.getElapsedTime();
+          nptPic = 10;
+        }
+        else if(who === 2) {
+        	npoWaitT = 0.5 + clock.getElapsedTime();
+          npoPic = 10;
+        }
+        else if(who === 3) {
+        	pptWaitT = 0.5 + clock.getElapsedTime();
+          pptPic = 10;
+        }
+        else {
+        	ppoWaitT = 0.5 + clock.getElapsedTime();
+          ppoPic = 10;
+        }
     		plane = new THREE.Mesh( new THREE.PlaneGeometry( 0.6, 0.9, 32 ), material );
     		obj3D.add(plane);
-    		plane.position.set(0, -0.55, 0);
+    		plane.position.set(0, -0.55, 0.01);
         pic = 10;
       }
     }
@@ -2016,6 +2073,7 @@ function rotationPoint(obj3D, plane, angle, pic, who) {
     	ppoAngle -= 0.1;
       if(ppoAngle <= 0) ppoAngle = 0;
     }
+    
   }
 }
 
