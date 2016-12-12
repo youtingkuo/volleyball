@@ -100,6 +100,9 @@ var BasicScene = function (scene){
     var light4 = new THREE.PointLight();
     light4.position.set(13, 3, 0);
     scene.add(light4);
+    var light5 = new THREE.PointLight();
+    light5.position.set(11, 3, 3);
+    scene.add(light5);
       
     THREE.ImageUtils.crossOrigin = '';
     var geometry = new THREE.CylinderGeometry( 50, 50, 50, 32, 32 );
