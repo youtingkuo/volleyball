@@ -89,16 +89,16 @@ body {
 <script>
 var BasicScene = function (scene){
     var light1 = new THREE.PointLight();
-    light1.position.set(0, 10, -10);
+    light1.position.set(0, 5, -8);
     scene.add(light1);
     var light2 = new THREE.PointLight();
-    light2.position.set(0, 10, 10);
+    light2.position.set(0, 5, 8);
     scene.add(light2);
     var light3 = new THREE.PointLight();
-    light3.position.set(-13, 15, 0);
+    light3.position.set(-13, 3, 0);
     scene.add(light3);
     var light4 = new THREE.PointLight();
-    light4.position.set(13, 5, 3);
+    light4.position.set(13, 3, 0);
     scene.add(light4);
       
     THREE.ImageUtils.crossOrigin = '';
