@@ -20,13 +20,13 @@ body {
   top: 77%;
   width: 80px;
   height: 80px;
-  background-image: url(https://i.imgur.com/OVO20Sn.png);
+  background-image: url(https://i.imgur.com/uewilpE.png);
   background-size: cover;
   transition: all 0.5s;
 }
 
 .pass.btn-active {
-  background-image: url(https://i.imgur.com/uewilpE.png);
+  background-image: url(https://i.imgur.com/OVO20Sn.png);
 }
 
 .spike {
@@ -36,13 +36,13 @@ body {
   top: 77%;
   width: 80px;
   height: 80px;
-  background-image: url(https://i.imgur.com/ehUlaMl.png);
+  background-image: url(https://i.imgur.com/fDoF6E1.png);
   background-size: cover;
   transition: all 0.5s;
 }
 
 .spike.btn-active {
-  background-image: url(https://i.imgur.com/fDoF6E1.png);
+  background-image: url(https://i.imgur.com/ehUlaMl.png);
 }
 
 .start {
@@ -60,7 +60,6 @@ body {
 .start.btn-active {
   background-color:#ffff00;
 }
-
 
 </style>
 </head>
@@ -89,16 +88,16 @@ body {
 <script>
 var BasicScene = function (scene){
     var light1 = new THREE.PointLight();
-    light1.position.set(0, 10, -10);
+    light1.position.set(0, 10, -30);
     scene.add(light1);
     var light2 = new THREE.PointLight();
-    light2.position.set(0, 10, 10);
+    light2.position.set(0, 10, 30);
     scene.add(light2);
     var light3 = new THREE.PointLight();
-    light3.position.set(-13, 15, 0);
+    light3.position.set(-30, 10, 0);
     scene.add(light3);
     var light4 = new THREE.PointLight();
-    light4.position.set(13, 5, 3);
+    light4.position.set(30, 10, 0);
     scene.add(light4);
       
     THREE.ImageUtils.crossOrigin = '';
@@ -482,6 +481,8 @@ var player = function(npc, num) {
     
     //玩家操控的攻擊點
     this.attackTarget = new THREE.Vector3(-4, 0, 0);
+    //
+    this.preTarget = new THREE.Vector3(0, 0, 0);
     
     this.board = new Agent (new THREE.Vector3 (0, 0, 0), new THREE.Vector3(0,0,0));
     this.robot = new robot (scene, npc, this.num);
@@ -551,12 +552,12 @@ player.prototype.startJump = function(target,jumpV,waitTime){
 	this.jumpWaitTime = waitTime;
 }
 player.prototype.serve = function(dT){
-	this.normalServe();
+	this.normalServe(dT);
   this.jumpServe(dT);
 }
 
 
-player.prototype.normalServe = function(){
+player.prototype.normalServe = function(dT){
 		if (this.serveIsOn === false) return;
     //console.log(this.state);
 		var now = clock.getElapsedTime();
@@ -602,6 +603,15 @@ player.prototype.normalServe = function(){
       this.state = 2;///發完球變成stand by
       this.stateTarget = undefined;
     }
+    /////////
+    var gotTargetAngle = this.makeTargetAngle()/Math.PI*180%180;
+    var robotY = this.robot.hitBallMachine.rotation.y/Math.PI*180%180;
+      
+    if(gotTargetAngle>robotY)
+      	this.robot.hitBallMachine.rotation.y +=dT;
+    else
+      	this.robot.hitBallMachine.rotation.y -=dT;
+    ////////////
     if(this.isLeft === true){
       this.robot.hitBallMachineHandLeft.rotation.x = -1*this.serveAngleRight;//-1反過來，左右手也是
       this.robot.hitBallMachineHandRight.rotation.x = -1*this.serveAngleLeft; 
@@ -610,6 +620,7 @@ player.prototype.normalServe = function(){
     	this.robot.hitBallMachineHandLeft.rotation.x = this.serveAngleRight;
       this.robot.hitBallMachineHandRight.rotation.x = this.serveAngleLeft;  
     }
+    
 }
 
 player.prototype.jumpServe = function(dT){//dT其實是傳給jump用的，發球動作是用jumpStartTime
@@ -827,6 +838,91 @@ player.prototype.predictY = function(v0, theta, phi, ye){
   return [finalP,t];
 }
 
+player.prototype.makeTarget = function(){
+//npc判斷
+	
+  //predictMesh.position.clone();
+	if(this.state === 4){
+    var x = Math.random() * 4.5 + 2.5;
+    var z = Math.random() * 6 - 3;
+    this.preTarget.copy(predictMesh.position);
+    if(this.isLeft){
+      if(x < 3) x++;
+      if(x < 3.5) {
+        if(z < 2 && z > -2) z = 2.5;
+      }
+      this.preTarget.set(x,1.1,z);
+      //this.faceTargetAngle = -1*Math.PI/2 - (Math.PI-phi)
+    }
+  }
+  else if(this.state === 5) {
+	  var x = Math.random() * 4 + 3;
+      var z = Math.random() * 5 - 2.5;
+      if(x < 4.5) {
+          	if(z < 3 && z > -3) {
+            	if(z > 0) z = 3;
+              else z = -3;
+          }
+      }
+	  if(this.isLeft) {
+		  this.preTarget.set(x,0,z);
+      }
+      else {
+		this.preTarget.copy(predictMesh.position);
+      }
+  }
+}
+
+player.prototype.makeTargetAngle = function(){
+	var robotPosTemp = new THREE.Vector3(0, 0, 0);
+  robotPosTemp.copy(this.robot.hitBallMachine.position);
+  if(this.isLeft===false)
+  	var temp = new THREE.Vector3(0, 0, -1);
+  else
+  	var temp = new THREE.Vector3(0, 0, 1);
+  var targetTemp = new THREE.Vector3(0, 0, 0);
+  if(this.state==3){
+  	if(this.isLeft == true){
+    	if(this.num === 1){
+      	targetTemp.copy(npcPlayer2.robot.hitBallMachine.position);
+  			var phi = 1* temp.angleTo(targetTemp.sub(robotPosTemp));
+  			return  phi;
+      }
+      else{
+      	targetTemp.copy(npcPlayer1.robot.hitBallMachine.position);
+  			var phi = 1* temp.angleTo(targetTemp.sub(robotPosTemp));
+  			return  phi;
+      }
+    }
+    else{
+    	if(this.num === 1){
+      	targetTemp.copy(player2.robot.hitBallMachine.position);
+  			var phi = 1* temp.angleTo(targetTemp.sub(robotPosTemp));
+  			return  phi;
+      }
+      else{
+      	targetTemp.copy(player1.robot.hitBallMachine.position);
+  			var phi = 1* temp.angleTo(targetTemp.sub(robotPosTemp));
+  			return  phi;
+      }
+    }
+  	
+  }
+  
+  else if(this.state === 1){
+  	targetTemp.copy(this.serveTarget);
+  	var phi = 1* temp.angleTo(targetTemp.sub(robotPosTemp));
+  	return  phi;
+  }
+  else{
+  	if(this.isLeft==false)
+    	targetTemp.copy(predictMesh.position);
+    else
+  		targetTemp.copy(this.preTarget);
+  	var phi = 1* temp.angleTo(targetTemp.sub(robotPosTemp));
+  	return  phi;
+  }
+}
   
 player.prototype.update = function(dT){
 	if(player1.state === 0 && player2.state === 0 && npcPlayer1.state === 0 && npcPlayer2.state === 0) {
@@ -857,6 +953,14 @@ player.prototype.update = function(dT){
 	//if(this.state === 0 || this.state === 1) return;
   
   else if(this.state === 2){ //standBy
+  //console.log(this.isLeft);
+	//console.log(this.robot.hitBallMachine.rotation.y);
+  	if(Math.abs(Math.PI/2-this.robot.hitBallMachine.rotation.y)>0.1){
+      if(this.robot.hitBallMachine.rotation.y<Math.PI/2)
+      	this.robot.hitBallMachine.rotation.y +=dT;
+      else
+      	this.robot.hitBallMachine.rotation.y -=dT;
+    }
   	this.board.target.copy(this.standByPosition);
   	this.board.pos.copy(this.board.mesh.position);
 		this.board.step(dT);
@@ -889,6 +993,15 @@ player.prototype.update = function(dT){
     	this.updateAngleRight +=  dT*3;
     
     }
+    var gotTargetAngle = this.makeTargetAngle()/Math.PI*180%180;
+    var robotY = this.robot.hitBallMachine.rotation.y/Math.PI*180%180;
+
+    //console.log(gotTargetAngle+" "+ robotY);
+    //this.robot.hitBallMachine.rotation.y = gotTargetAngle;
+    if(gotTargetAngle>robotY)
+      this.robot.hitBallMachine.rotation.y +=dT;
+    else
+      this.robot.hitBallMachine.rotation.y -=dT;
     
     if (!ball.collisionDetection(ball.mesh.position, p0, n)){	
     //球運動到跟板子(手)同平面
@@ -902,6 +1015,7 @@ player.prototype.update = function(dT){
           var tmp = this.predict(new THREE.Vector3(-2, 0, 0)); //算出到(x, 0, z)的速度與角度
           var jumpTarget = this.predictY(tmp[0], tmp[1], tmp[2], 3.7);
   ball.shoot(rotation(new THREE.Vector3(tmp[0], 0, 0), tmp[1], tmp[2]));
+  
           if(!(jumpTarget[1] < 2)) jumpTarget[1] = 1;
           if(this.num === 1) {
           	if(npcPlayer2.state === 6) {
@@ -910,6 +1024,8 @@ player.prototype.update = function(dT){
 	  					npcPlayer2.jumpWaitTime = jumpTarget[1];
 	  					npcPlayer2.jumpV = new THREE.Vector3(0, 5, 0);
 	  					npcPlayer2.jumpIsOn = true;
+              npcPlayer2.chaseTarget = jumpTarget[0];
+							npcPlayer2.board.vel = new THREE.Vector3(0, 0, 0);
             }
           }
           else if(this.num === 2) {
@@ -919,6 +1035,8 @@ player.prototype.update = function(dT){
 	  					npcPlayer1.jumpWaitTime = jumpTarget[1];
 	  					npcPlayer1.jumpV = new THREE.Vector3(0, 5, 0);
 	  					npcPlayer1.jumpIsOn = true;
+              npcPlayer1.chaseTarget = jumpTarget[0];
+							npcPlayer1.board.vel = new THREE.Vector3(0, 0, 0);
             }
           }
         }
@@ -937,6 +1055,8 @@ player.prototype.update = function(dT){
 	  					player2.jumpWaitTime = jumpTarget[1];
 	  					player2.jumpV = new THREE.Vector3(0, 5, 0);
 	  					player2.jumpIsOn = true;
+              player2.chaseTarget = jumpTarget[0];
+              player2.board.vel = new THREE.Vector3(0, 0, 0);
             }
           }
           else if(this.num === 2) {
@@ -946,6 +1066,8 @@ player.prototype.update = function(dT){
 	  					player1.jumpWaitTime = jumpTarget[1];
 	  					player1.jumpV = new THREE.Vector3(0, 5, 0);
 	  					player1.jumpIsOn = true;
+              player1.chaseTarget = jumpTarget[0];
+              player1.board.vel = new THREE.Vector3(0, 0, 0);
             }
           }
         }
@@ -966,6 +1088,7 @@ player.prototype.update = function(dT){
     else var frontOrBack = 0.8;	this.robot.hitBallMachine.position.set(this.board.mesh.position.x+frontOrBack, 0.4, this.board.mesh.position.z);
   }
   
+  
   else if(this.state === 4){ //normal attack
   	var n = rotation(new THREE.Vector3(0, 1, 0), this.board.mesh.rotation.z, 0); //板子(手)的法線向量
 		var p0 = this.board.mesh.localToWorld(new THREE.Vector3(0, -0.1, 0)); 
@@ -978,26 +1101,39 @@ player.prototype.update = function(dT){
     	this.updateAngleRight +=  dT*3;
     
     }
+    var robotPosTemp = new THREE.Vector3(0, 0, 0);
+    robotPosTemp.copy(this.robot.hitBallMachine.position);
+    if(robotPosTemp.sub(ball.mesh.position).length()<5 && this.preTarget.x==0 && this.preTarget.z==0){
+    	this.makeTarget();
+      //console.log("makeTarget fin");
+    }
+    
+    if(this.preTarget.x!=0 && this.preTarget.z!=0){
+    	var gotTargetAngle = this.makeTargetAngle()/Math.PI*180%180;
+      var robotY = this.robot.hitBallMachine.rotation.y/Math.PI*180%180;
+      
+      //console.log(gotTargetAngle+" "+ robotY);
+      //this.robot.hitBallMachine.rotation.y = gotTargetAngle;
+      if(gotTargetAngle>robotY)
+      	this.robot.hitBallMachine.rotation.y +=dT;
+      else
+      	this.robot.hitBallMachine.rotation.y -=dT;
+    }
+    
     if (!ball.collisionDetection(ball.mesh.position, p0, n)){	
     //球運動到跟板子(手)同平面
     	var r = ball.mesh.position.clone().sub(p0);
       var r1 = r.clone().sub(n.clone().multiplyScalar(r.clone().dot(n))).lengthSq();
-      if (Math.abs(r1) <= 0.16) { //球在板子(手)的範圍內      	
-      	var x = Math.random() * 4.5 + 2.5;
-        var z = Math.random() * 6 - 3;
-        if(this.isLeft) {
-        	referee.npcLastMode = 4;
-        	referee.whoLastHit = 2;
-          if(x < 3) x++;
-          if(x < 3.5) {
-          	if(z < 2 && z > -2) z = 2.5;
-          }
-        	this.passTarget(new THREE.Vector3(x, 0, z));
+      if (Math.abs(r1) <= 0.16) { //球在板子(手)的範圍內     
+        if(this.isLeft) {  
+        	this.passTarget(this.preTarget);
+          this.preTarget.set(0,0,0);
         }
         else {
         	referee.playerLastMode = 4;
         	referee.whoLastHit = 1;
         	this.passTarget(predictMesh.position.clone());
+          this.preTarget.set(0,0,0);
         }
         this.state = 2;
         
@@ -1021,6 +1157,9 @@ player.prototype.update = function(dT){
 	this.board.mesh.position.z = this.board.pos.z;
 	if(this.npc) var frontOrBack = -0.8;
 	else var frontOrBack = 0.8;	this.robot.hitBallMachine.position.set(this.board.mesh.position.x+frontOrBack, 0.4, this.board.mesh.position.z);
+  
+  
+  
   }
   
   else if(this.state === 5){ //殺球
@@ -1035,25 +1174,37 @@ player.prototype.update = function(dT){
 		//console.log(this.robot.handRight.localToWorld(new THREE.Vector3(0,0,0)));
 		
 	
+  var robotPosTemp = new THREE.Vector3(0, 0, 0);
+    robotPosTemp.copy(this.robot.hitBallMachine.position);
+    if(robotPosTemp.sub(ball.mesh.position).length()<3 && this.preTarget.x==0 && this.preTarget.z==0){
+    	this.makeTarget();
+      //console.log("makeTarget fin");
+    }
+    
+    if(this.preTarget.x!=0 && this.preTarget.z!=0){
+    	var gotTargetAngle = this.makeTargetAngle()/Math.PI*180%180;
+      var robotY = this.robot.hitBallMachine.rotation.y/Math.PI*180%180;
+      
+      //console.log(gotTargetAngle+" "+ robotY);
+      //this.robot.hitBallMachine.rotation.y = gotTargetAngle;
+      if(gotTargetAngle>robotY)
+      	this.robot.hitBallMachine.rotation.y +=dT;
+      else
+      	this.robot.hitBallMachine.rotation.y -=dT;
+    }
+  
 	if(this.jumpWaitTime<0 && this.jumpState === 0){
-    	var x = Math.random() * 4 + 3;
-      var z = Math.random() * 5 - 2.5;
-      if(x < 3.5) {
-          	if(z < 2 && z > -2) {
-            	if(z > 0) z = 2.5;
-              else z = -2.5;
-          }
-      }
 		  if(this.isLeft) {
       	referee.npcLastMode = 5;
       	referee.whoLastHit = 2;
-        this.passTarget(new THREE.Vector3(x, 0, z));
+        	this.passTarget(this.preTarget);
+          this.preTarget.set(0,0,0);
       }
       else {
       	referee.playerLastMode = 5;
-      	x *= -1;
       	referee.whoLastHit = 1;
         this.passTarget(predictMesh.position.clone());
+        this.preTarget.set(0,0,0);
       }
 			this.jumpState = 1;
       spikeSound.pause();
@@ -1551,6 +1702,7 @@ var npcPointTen, npcPointOne, playerPointTen, playerPointOne;
 var playerPoint1, playerPoint2, npcPoint1, npcPoint2;
 var nptAngle = 0, npoAngle = 0, pptAngle = 0, ppoAngle = 0;
 var nptPic = 10, npoPic = 10, pptPic = 10, ppoPic = 10;
+var nptWaitT = 0, npoWaitT = 0, pptWaitT = 0, ppoWaitT = 0;
 
 $("#pass").click(function() {
 	pass = !pass;
@@ -1728,14 +1880,20 @@ var fframe2 = new THREE.Mesh(new THREE.PlaneGeometry(6.3, 0.08), new THREE.MeshB
 		var material = new THREE.MeshBasicMaterial ({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/wymDw47.png'),  side:THREE.DoubleSide});
     npcPoint1 = new THREE.Mesh( new THREE.PlaneGeometry( 0.6, 0.9, 32 ), material );
     npcPointTen.add(npcPoint1);
-    npcPoint1.position.set(0, -0.55, 0);
+    npcPoint1.position.set(0, -0.55, 0.01);
+    var npcPointback1 = new THREE.Mesh( new THREE.PlaneGeometry( 0.6, 0.9, 32 ), new THREE.MeshBasicMaterial ({color: 0xffffff,  side:THREE.DoubleSide} ));
+    npcPointTen.add(npcPointback1);
+    npcPointback1.position.set(0, -0.55, -0.01);
     scoreBoard.add(npcPointTen);
     
     npcPointOne = new THREE.Object3D();
     npcPointOne.position.set(-0.4, 3.1, 0);
     npcPoint2 = npcPoint1.clone();
     npcPointOne.add(npcPoint2);
-    npcPoint2.position.set(0, -0.55, 0);
+    npcPoint2.position.set(0, -0.55, 0.01);
+    var npcPointback2 = new THREE.Mesh( new THREE.PlaneGeometry( 0.6, 0.9, 32 ), new THREE.MeshBasicMaterial ({color: 0xffffff,  side:THREE.DoubleSide} ));
+    npcPointOne.add(npcPointback2);
+    npcPointback2.position.set(0, -0.55, -0.01);
     scoreBoard.add(npcPointOne);
     
     playerPointTen = new THREE.Object3D();
@@ -1743,14 +1901,20 @@ var fframe2 = new THREE.Mesh(new THREE.PlaneGeometry(6.3, 0.08), new THREE.MeshB
     material = new THREE.MeshBasicMaterial ({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/8kte6xE.png'),  side:THREE.DoubleSide});
     playerPoint1 = new THREE.Mesh( new THREE.PlaneGeometry( 0.6, 0.9, 32 ), material );
     playerPointTen.add(playerPoint1);
-    playerPoint1.position.set(0, -0.55, 0);
+    playerPoint1.position.set(0, -0.55, 0.01);
+    var playerPointback1 = new THREE.Mesh( new THREE.PlaneGeometry( 0.6, 0.9, 32 ), new THREE.MeshBasicMaterial ({color: 0xffffff,  side:THREE.DoubleSide} ));
+    playerPointTen.add(playerPointback1);
+    playerPointback1.position.set(0, -0.55, -0.01);
     scoreBoard.add(playerPointTen);
     
     playerPointOne = new THREE.Object3D();
     playerPointOne.position.set(1.05, 3.1, 0);
     playerPoint2 = playerPoint1.clone();
     playerPointOne.add(playerPoint2);
-    playerPoint2.position.set(0, -0.55, 0);
+    playerPoint2.position.set(0, -0.55, 0.01);
+    var playerPointback2 = new THREE.Mesh( new THREE.PlaneGeometry( 0.6, 0.9, 32 ), new THREE.MeshBasicMaterial ({color: 0xffffff,  side:THREE.DoubleSide} ));
+    playerPointOne.add(playerPointback2);
+    playerPointback2.position.set(0, -0.55, -0.01);
     scoreBoard.add(playerPointOne);
   
   slapSound = document.getElementById ('slapSound');
@@ -1782,8 +1946,22 @@ function onDocumentMouseDown(event) {
 }
 
 function rotationPoint(obj3D, plane, angle, pic, who) {
+  if(who === 1) {
+  	if((clock.getElapsedTime() - nptWaitT) < 0) return;
+  }
+  else if(who === 2) {
+  	if((clock.getElapsedTime() - npoWaitT) < 0) return;
+  }
+  else if(who === 3) {
+  	if((clock.getElapsedTime() - pptWaitT) < 0) return;
+  }
+  else {
+  	if((clock.getElapsedTime() - ppoWaitT) < 0) return;
+  }
+  
+  
 	if(angle > 0) {
-  	if(angle <= Math.PI * 3 / 4) {
+  	if(angle <= Math.PI ) {
     	if(pic != 10) {
     		THREE.ImageUtils.crossOrigin = '';
         if(pic === 0) {
@@ -1866,9 +2044,25 @@ function rotationPoint(obj3D, plane, angle, pic, who) {
           	var material = new THREE.MeshBasicMaterial ({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/OAUHYyq.png'),  side:THREE.DoubleSide});
           }
         }
+        if(who === 1) {
+        	nptWaitT = 0.5 + clock.getElapsedTime();
+          nptPic = 10;
+        }
+        else if(who === 2) {
+        	npoWaitT = 0.5 + clock.getElapsedTime();
+          npoPic = 10;
+        }
+        else if(who === 3) {
+        	pptWaitT = 0.5 + clock.getElapsedTime();
+          pptPic = 10;
+        }
+        else {
+        	ppoWaitT = 0.5 + clock.getElapsedTime();
+          ppoPic = 10;
+        }
     		plane = new THREE.Mesh( new THREE.PlaneGeometry( 0.6, 0.9, 32 ), material );
     		obj3D.add(plane);
-    		plane.position.set(0, -0.55, 0);
+    		plane.position.set(0, -0.55, 0.01);
         pic = 10;
       }
     }
@@ -1889,6 +2083,7 @@ function rotationPoint(obj3D, plane, angle, pic, who) {
     	ppoAngle -= 0.1;
       if(ppoAngle <= 0) ppoAngle = 0;
     }
+    
   }
 }
 
