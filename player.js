@@ -391,7 +391,7 @@ player.prototype.makeTarget = function(){
 	
   //predictMesh.position.clone();
 	if(this.state === 4){
-    var x = Math.random() * 4.5 + 2.5;
+    var x = Math.random() * 3.5 + 2.5;
     var z = Math.random() * 6 - 3;
     this.preTarget.copy(predictMesh.position);
     if(this.isLeft){
@@ -404,9 +404,9 @@ player.prototype.makeTarget = function(){
     }
   }
   else if(this.state === 5) {
-	  var x = Math.random() * 4 + 3;
+	  var x = Math.random() * 3 + 4.5;
       var z = Math.random() * 5 - 2.5;
-      if(x < 4.5) {
+      if(x < 5.5) {
           	if(z < 3 && z > -3) {
             	if(z > 0) z = 3;
               else z = -3;
