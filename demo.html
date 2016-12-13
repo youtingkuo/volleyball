@@ -858,7 +858,7 @@ player.prototype.makeTarget = function(){
   else if(this.state === 5) {
 	  var x = Math.random() * 4 + 3;
       var z = Math.random() * 5 - 2.5;
-      if(x < 3.5) {
+      if(x < 4.5) {
           	if(z < 3 && z > -3) {
             	if(z > 0) z = 3;
               else z = -3;
@@ -1015,6 +1015,7 @@ player.prototype.update = function(dT){
           var tmp = this.predict(new THREE.Vector3(-2, 0, 0)); //算出到(x, 0, z)的速度與角度
           var jumpTarget = this.predictY(tmp[0], tmp[1], tmp[2], 3.7);
   ball.shoot(rotation(new THREE.Vector3(tmp[0], 0, 0), tmp[1], tmp[2]));
+  
           if(!(jumpTarget[1] < 2)) jumpTarget[1] = 1;
           if(this.num === 1) {
           	if(npcPlayer2.state === 6) {
@@ -1023,6 +1024,8 @@ player.prototype.update = function(dT){
 	  					npcPlayer2.jumpWaitTime = jumpTarget[1];
 	  					npcPlayer2.jumpV = new THREE.Vector3(0, 5, 0);
 	  					npcPlayer2.jumpIsOn = true;
+              npcPlayer2.chaseTarget = jumpTarget[0];
+							npcPlayer2.board.vel = new THREE.Vector3(0, 0, 0);
             }
           }
           else if(this.num === 2) {
@@ -1032,6 +1035,8 @@ player.prototype.update = function(dT){
 	  					npcPlayer1.jumpWaitTime = jumpTarget[1];
 	  					npcPlayer1.jumpV = new THREE.Vector3(0, 5, 0);
 	  					npcPlayer1.jumpIsOn = true;
+              npcPlayer1.chaseTarget = jumpTarget[0];
+							npcPlayer1.board.vel = new THREE.Vector3(0, 0, 0);
             }
           }
         }
@@ -1050,6 +1055,8 @@ player.prototype.update = function(dT){
 	  					player2.jumpWaitTime = jumpTarget[1];
 	  					player2.jumpV = new THREE.Vector3(0, 5, 0);
 	  					player2.jumpIsOn = true;
+              player2.chaseTarget = jumpTarget[0];
+              player2.board.vel = new THREE.Vector3(0, 0, 0);
             }
           }
           else if(this.num === 2) {
@@ -1059,6 +1066,8 @@ player.prototype.update = function(dT){
 	  					player1.jumpWaitTime = jumpTarget[1];
 	  					player1.jumpV = new THREE.Vector3(0, 5, 0);
 	  					player1.jumpIsOn = true;
+              player1.chaseTarget = jumpTarget[0];
+              player1.board.vel = new THREE.Vector3(0, 0, 0);
             }
           }
         }
@@ -1078,6 +1087,7 @@ player.prototype.update = function(dT){
     if(this.npc) var frontOrBack = -0.8;
     else var frontOrBack = 0.8;	this.robot.hitBallMachine.position.set(this.board.mesh.position.x+frontOrBack, 0.4, this.board.mesh.position.z);
   }
+  
   
   else if(this.state === 4){ //normal attack
   	var n = rotation(new THREE.Vector3(0, 1, 0), this.board.mesh.rotation.z, 0); //板子(手)的法線向量
