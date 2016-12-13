@@ -1,4 +1,4 @@
-<html><head>
+﻿<html><head>
 <style>
 #info {
   position: absolute;
@@ -635,6 +635,8 @@ function render() {
   renderer.clear();
   renderer.render(scene, camera);
   
+  attackCamera.lookAt(new THREE.Vector3(-3.6, 0, 0));
+	attackCamera.position.set(-3.5, 10, 0);
   renderer.render(sceneHUD, cameraHUD);
   renderer.setViewport(WW/1.35, HH/60, WW/4, HH/3.2);
   renderer.setScissor(WW/1.35, HH/60, WW/4, HH/3.2);
