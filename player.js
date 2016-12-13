@@ -323,7 +323,7 @@ player.prototype.predict = function(end){//傳進預測點end
       
     }
     else if(this.state===3){
-    	if(length < 2.5){
+    	if(length < 3){
         var theta = 82.5/180*Math.PI;
         //console.log(theta);
         var v0 = Math.sqrt(length*9.8/Math.sin(2*theta));
