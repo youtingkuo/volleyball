@@ -133,7 +133,7 @@ $('#start').click(function() {
   	var tmp  = predictMesh.position.clone();
   	if(spike) {
     	tmp.x += 1.7;
-      var tmp2 = predictMesh.position.x / 10;
+      var tmp2 = predictMesh.position.x / 5.5;
       var tmpZ = predictMesh.position.z / 10;
       tmp.x -= tmp2;
       tmp.z -= tmpZ; 
@@ -141,7 +141,7 @@ $('#start').click(function() {
     }
   	else {
     	tmp.x += 0.6;
-      var tmp2 = predictMesh.position.x / 8;
+      var tmp2 = predictMesh.position.x / 5;
       var tmpZ = predictMesh.position.z / 10;
       tmp.x -= tmp2;
       tmp.z -= tmpZ; 
