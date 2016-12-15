@@ -468,9 +468,9 @@ player.prototype.update = function(dT){
   		var tmp = Math.random();
       //console.log(tmp);
   		if(tmp > 0.5)
-				npcPlayer1.startJump(new THREE.Vector3(4, 2.51, 0),new THREE.Vector3(0, 5, 0),0.1);  
+				npcPlayer1.startJump(new THREE.Vector3(3, 2.51, 0),new THREE.Vector3(0, 5, 0),0.1);  
   		else 
-				npcPlayer1.startServe(new THREE.Vector3(4, 2.51, 0));
+				npcPlayer1.startServe(new THREE.Vector3(3, 2.51, 0));
         
       player1.state = 2;
      	player2.state = 2;
