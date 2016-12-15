@@ -282,20 +282,14 @@ player.prototype.predict = function(end){//傳進預測點end
   var length = predictTargetPos.sub(ball.mesh.position).length(); //計算目前位置跟預測點的水平距離
 
   if(this.state===1 ){
-      var v0 = 10; //設定初速，依據不同距離給不同初速
-      var temp = length*9.8/(v0*v0); //算出sin-1裡面的部分
-      if(temp<1) var theta = 0.5*Math.asin(temp); //如果小於1
-      else{//大於一不能放進Math.asin，重新調v0到剛好足夠的數字
-        v0 = Math.sqrt(v0*v0*(temp+0.00001));
-        var theta = 0.5*Math.asin(length*9.8/(v0*v0));
-      }
+      var theta = 25/180*Math.PI;
+      var v0 = Math.sqrt(length*9.8/Math.sin(2*theta));
     }
     else if(this.state===5){
     	
   		var ballCopy  = new THREE.Vector3(0, 0, 0);
   		ballCopy.copy(ball.mesh.position);
       var ye = predictTargetPosForSpike.y;
-      //console.log(predictTargetPosForSpike.y);
       ballCopy.y=ye;
       
       length = predictTargetPosForSpike.sub(ballCopy).length();
@@ -323,26 +317,20 @@ player.prototype.predict = function(end){//傳進預測點end
       
     }
     else if(this.state===3){
-    	if(length < 3){
+    	if(length < 2.5){
         var theta = 82.5/180*Math.PI;
-        //console.log(theta);
         var v0 = Math.sqrt(length*9.8/Math.sin(2*theta));
       }
       else{
         var theta = 75/180*Math.PI;
-        //console.log(theta);
         var v0 = Math.sqrt(length*9.8/Math.sin(2*theta));
       }
-      
-      //console.log(length);
     }
     else{
       var theta = 50/180*Math.PI;
-      //console.log(theta);
       var v0 = Math.sqrt(length*9.8/Math.sin(2*theta));
     }
     
-  	//console.log(" theta:"+theta.toFixed(1)/Math.PI*180);
 	predictTargetPos.copy(end);
     var ballPos = new THREE.Vector3(0, 0, 0);
     ballPos.copy(ball.mesh.position);
@@ -352,11 +340,8 @@ player.prototype.predict = function(end){//傳進預測點end
     	var phi = -1* temp3.angleTo(predictTargetPos.sub(ballPos));
     else
     	var phi = 1* temp3.angleTo(predictTargetPos.sub(ballPos));
-    //ball.isOn=true;
-	//ball.shoot(rotation(new THREE.Vector3(v0, 0, 0), theta, phi ));
     
     return [v0, theta, phi];
-		//ball.v = rotation(new THREE.Vector3(v0, 0, 0), theta, phi);
 }
 
 player.prototype.predictY = function(v0, theta, phi, ye){
