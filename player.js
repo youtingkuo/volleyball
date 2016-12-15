@@ -323,7 +323,7 @@ player.prototype.predict = function(end){//傳進預測點end
       
     }
     else if(this.state===3){
-    	if(length < 2.5){
+    	if(length < 3){
         var theta = 82.5/180*Math.PI;
         //console.log(theta);
         var v0 = Math.sqrt(length*9.8/Math.sin(2*theta));
@@ -391,7 +391,7 @@ player.prototype.makeTarget = function(){
 	
   //predictMesh.position.clone();
 	if(this.state === 4){
-    var x = Math.random() * 4.5 + 2.5;
+    var x = Math.random() * 3.5 + 2.5;
     var z = Math.random() * 6 - 3;
     this.preTarget.copy(predictMesh.position);
     if(this.isLeft){
@@ -404,9 +404,9 @@ player.prototype.makeTarget = function(){
     }
   }
   else if(this.state === 5) {
-	  var x = Math.random() * 4 + 3;
+	  var x = Math.random() * 3 + 4.5;
       var z = Math.random() * 5 - 2.5;
-      if(x < 4.5) {
+      if(x < 5.5) {
           	if(z < 3 && z > -3) {
             	if(z > 0) z = 3;
               else z = -3;

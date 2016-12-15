@@ -1,4 +1,27 @@
 var BasicScene = function (scene){
+    var spotLight = new THREE.SpotLight( 0xffffff );
+		spotLight.position.set( 13, 8, 10 );
+		spotLight.castShadow = true;
+		spotLight.shadow.mapSize.width = 1024;
+		spotLight.shadow.mapSize.height = 1024;
+		spotLight.shadow.camera.near = 500;
+		spotLight.shadow.camera.far = 4000;
+		spotLight.shadow.camera.fov = 30;
+		scene.add( spotLight );
+    
+    var spotLight2 = spotLight.clone();
+		spotLight2.position.set( 13, 8, -10 );
+		scene.add( spotLight2 );
+    
+    var spotLight3 = spotLight.clone();
+		spotLight3.position.set( -13, 8, -10 );
+		scene.add( spotLight3 );
+    
+    var spotLight4 = spotLight.clone();
+		spotLight4.position.set( -13, 8, 10 );
+		scene.add( spotLight4 );
+    
+    /*
     var light1 = new THREE.PointLight();
     light1.position.set(0, 10, -30);
     scene.add(light1);
@@ -11,7 +34,7 @@ var BasicScene = function (scene){
     var light4 = new THREE.PointLight();
     light4.position.set(30, 10, 0);
     scene.add(light4);
-      
+    */
     THREE.ImageUtils.crossOrigin = '';
     var geometry = new THREE.CylinderGeometry( 50, 50, 50, 32, 32 );
 		var material = new THREE.MeshBasicMaterial ({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/fJxaqVc.jpg'),  side:THREE.DoubleSide});
