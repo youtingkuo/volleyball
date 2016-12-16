@@ -376,7 +376,7 @@ player.prototype.makeTarget = function(){
 	
   //predictMesh.position.clone();
 	if(this.state === 4){
-    var x = Math.random() * 3.5 + 2;
+    var x = Math.random() * 2.5 + 3;
     var z = Math.random() * 6 - 3;
     this.preTarget.copy(predictMesh.position);
     if(this.isLeft){
