@@ -107,9 +107,7 @@ player.prototype.serve = function(dT){
 
 player.prototype.normalServe = function(dT){
 		if (this.serveIsOn === false) return;
-    //console.log(this.state);
 		var now = clock.getElapsedTime();
-      //console.log(this.serveState)
     if(ball.isOn === false)//球跟著手
   		ball.mesh.position.copy(this.robot.handRight.localToWorld(new THREE.Vector3(0,0,0)));//NPC的話其實是左手
 		
@@ -131,9 +129,6 @@ player.prototype.normalServe = function(dT){
 		this.serveState = 1;
 	}
     if (this.serveState == 1 && this.serveAngleRight < Math.PI &&  ball.isOn === false){
-			//ball.isOn=true;
-      //ball.shoot(new THREE.Vector3(8, 9, 0));
-      //console.log(ball.mesh.position);
       ball.isOn = true;
       this.passTarget(this.serveTarget);
       spikeSound.pause();
@@ -174,7 +169,6 @@ player.prototype.normalServe = function(dT){
 player.prototype.jumpServe = function(dT){//dT其實是傳給jump用的，發球動作是用jumpStartTime
 	if (this.jumpServeIsOn === false) return;
 	var now = clock.getElapsedTime();
-	//console.log(this.jumpServeState)
     if(ball.isOn === false)//球跟著手
   		ball.mesh.position.copy(this.robot.handRight.localToWorld(new THREE.Vector3(0,0,0)));//NPC的話其實是左手
 	if(this.jumpServeState == 0){
@@ -204,7 +198,6 @@ player.prototype.jumpServe = function(dT){//dT其實是傳給jump用的，發球
 	if(this.jumpServeState == 2){
 		var ballY =  ball.mesh.position.y;
 		var handY = this.robot.handRight.localToWorld(new THREE.Vector3(0,0,0)).y;
-		//console.log(Math.abs(ballY-handY));
 		if(Math.abs(ballY-handY)<0.85){
 		  this.jumpServeState = 3;
 		  this.jumpStartTime = clock.getElapsedTime();
@@ -245,13 +238,6 @@ player.prototype.jumpServe = function(dT){//dT其實是傳給jump用的，發球
 
 player.prototype.jump = function(dT){
   if (this.jumpIsOn === false) return;
-	//console.log(this.robot.hitBallMachine.position.y);
-	/*
-  if(this.jumpV.y==5)
-	this.recordTime = 0;
-  else
-	this.recordTime+=dT;
-*/
   var f = new THREE.Vector3(0, -9.8, 0);
   var robotPos = new THREE.Vector3(0, 0, 0);
   this.jumpV.add ( f.clone().multiplyScalar(dT) );
@@ -316,7 +302,7 @@ player.prototype.predict = function(end){//傳進預測點end
       }
       
     }
-    else if(this.state===3){
+    else if(this.state===3 || this.state===9){
     	if(length < 2.5){
         var theta = 82.5/180*Math.PI;
         var v0 = Math.sqrt(length*9.8/Math.sin(2*theta));
@@ -350,7 +336,6 @@ player.prototype.predictY = function(v0, theta, phi, ye){
   var b = -v0 * Math.sin(theta);
   var c = ye - ys;
   var t = (b*(-1) + Math.sqrt(Math.pow(b, 2) - 4*a*c)) / (2*a);
-  //console.log(t);
   
   var L = v0 * Math.cos(theta) * t;
   var movement = new THREE.Vector3(L, 0, 0);
@@ -359,25 +344,15 @@ player.prototype.predictY = function(v0, theta, phi, ye){
   var finalP = new THREE.Vector3( 0, 0, 0 );
   finalP.addVectors(ball.mesh.position.clone(), movement);
   finalP.y = ye;
-  /*
-	var predictMesh = new THREE.Mesh(new THREE.SphereGeometry(0.2, 32, 32), new THREE.MeshBasicMaterial({transparent: true, 
-						 side:THREE.DoubleSide,color: 0x00ffff}));
-	predictMesh.position.copy(finalP);
-	scene.add(predictMesh);	
-*/
-  
-  
   
   return [finalP,t];
 }
 
 player.prototype.makeTarget = function(){
 //npc判斷
-	
-  //predictMesh.position.clone();
 	if(this.state === 4){
-    var x = Math.random() * 2.5 + 3;
-    var z = Math.random() * 6 - 3;
+    var x = Math.random() * 5 + 2.5;
+    var z = Math.random() * 7 - 3.5;
     this.preTarget.copy(predictMesh.position);
     if(this.isLeft){
       if(x < 3) x++;
@@ -385,7 +360,6 @@ player.prototype.makeTarget = function(){
         if(z < 2 && z > -2) z = 2.5;
       }
       this.preTarget.set(x,1.1,z);
-      //this.faceTargetAngle = -1*Math.PI/2 - (Math.PI-phi)
     }
   }
   else if(this.state === 5) {
@@ -466,7 +440,6 @@ player.prototype.update = function(dT){
 			ball.isOn = false;
   		referee.playing = true;
   		var tmp = Math.random();
-      //console.log(tmp);
   		if(tmp > 0.5)
 				npcPlayer1.startJump(new THREE.Vector3(2, 2.51, 0),new THREE.Vector3(0, 5, 0),0.1);  
   		else 
@@ -486,8 +459,6 @@ player.prototype.update = function(dT){
 	//if(this.state === 0 || this.state === 1) return;
   
   else if(this.state === 2){ //standBy
-  //console.log(this.isLeft);
-	//console.log(this.robot.hitBallMachine.rotation.y);
   	if(Math.abs(Math.PI/2-this.robot.hitBallMachine.rotation.y)>0.1){
       if(this.robot.hitBallMachine.rotation.y<Math.PI/2)
       	this.robot.hitBallMachine.rotation.y +=dT;
@@ -517,24 +488,13 @@ player.prototype.update = function(dT){
   	var n = rotation(new THREE.Vector3(0, 1, 0), this.board.mesh.rotation.z, 0); //板子(手)的法線向量
 		var p0 = this.board.mesh.localToWorld(new THREE.Vector3(0, -0.1, 0)); 
     // p0為板子(手)上的一點
+    
     var distance = ball.mesh.position.clone().sub(this.board.mesh.localToWorld(new THREE.Vector3(0, 0.3, 0))).lengthSq(); //球與板子(手)的距離
     
-  	
-    if(distance < 3) { //球跟板子(手)距離小於3，手就開始往上揮
-    	this.board.mesh.position.add(n.clone().multiplyScalar(dT*3));
-    	this.updateAngleLeft += dT*3;
-    	this.updateAngleRight +=  dT*3;
-    
-    }
-    var gotTargetAngle = this.makeTargetAngle()/Math.PI*180%180;
-    var robotY = this.robot.hitBallMachine.rotation.y/Math.PI*180%180;
-
-    //console.log(gotTargetAngle+" "+ robotY);
-    //this.robot.hitBallMachine.rotation.y = gotTargetAngle;
-    if(gotTargetAngle>robotY)
-      this.robot.hitBallMachine.rotation.y +=dT;
-    else
-      this.robot.hitBallMachine.rotation.y -=dT;
+    if(this.updateAngleRight <= Math.PI/1.3){
+    	this.updateAngleLeft += dT*5;
+    	this.updateAngleRight +=  dT*5;	
+		}
     
     if (!ball.collisionDetection(ball.mesh.position, p0, n)){	
     //球運動到跟板子(手)同平面
@@ -544,8 +504,8 @@ player.prototype.update = function(dT){
       	if(this.isLeft) {
         	referee.npcLastMode = 3;
         	referee.whoLastHit = 2;
-        	//this.passTarget(new THREE.Vector3(2, 0, 0));
-          var tmp = this.predict(new THREE.Vector3(-2, 0, 0)); //算出到(x, 0, z)的速度與角度
+          if(this.num === 1) var tmp = this.predict(new THREE.Vector3(-2, 0, 2)); //算出到(x, 0, z)的速度與角度
+          else var tmp = this.predict(new THREE.Vector3(-2, 0, -2));
           var jumpTarget = this.predictY(tmp[0], tmp[1], tmp[2], 3.7);
   ball.shoot(rotation(new THREE.Vector3(tmp[0], 0, 0), tmp[1], tmp[2]));
   
@@ -553,7 +513,7 @@ player.prototype.update = function(dT){
           if(this.num === 1) {
           	if(npcPlayer2.state === 6) {
             	npcPlayer2.state = 5; //殺球
-      				npcPlayer2.chaseTarget = new THREE.Vector3(-2, 3.7, 0);
+      				npcPlayer2.chaseTarget = new THREE.Vector3(-2, 3.7, 2);
 	  					npcPlayer2.jumpWaitTime = jumpTarget[1];
 	  					npcPlayer2.jumpV = new THREE.Vector3(0, 5, 0);
 	  					npcPlayer2.jumpIsOn = true;
@@ -564,7 +524,7 @@ player.prototype.update = function(dT){
           else if(this.num === 2) {
           	if(npcPlayer1.state === 6) {
             	npcPlayer1.state = 5; //殺球
-      				npcPlayer1.chaseTarget = new THREE.Vector3(-2, 3.7, 0);
+      				npcPlayer1.chaseTarget = new THREE.Vector3(-2, 3.7, -2);
 	  					npcPlayer1.jumpWaitTime = jumpTarget[1];
 	  					npcPlayer1.jumpV = new THREE.Vector3(0, 5, 0);
 	  					npcPlayer1.jumpIsOn = true;
@@ -576,15 +536,15 @@ player.prototype.update = function(dT){
         else {
         	referee.playerLastMode = 3;
         	referee.whoLastHit = 1;
-        	//this.passTarget(new THREE.Vector3(-2, 0, 0));
-          var tmp = this.predict(new THREE.Vector3(2, 0, 0)); //算出到(x, 0, z)的速度與角度
+          if(this.num === 1) var tmp = this.predict(new THREE.Vector3(2, 0, 2)); //算出到(x, 0, z)的速度與角度
+          else var tmp = this.predict(new THREE.Vector3(2, 0, -2));
           var jumpTarget = this.predictY(tmp[0], tmp[1], tmp[2], 3.7);
   ball.shoot(rotation(new THREE.Vector3(tmp[0], 0, 0), tmp[1], tmp[2]));
 					if(!(jumpTarget[1] < 2)) jumpTarget[1] = 1;
           if(this.num === 1) {
           	if(player2.state === 6) {
             	player2.state = 5; //殺球
-      				player2.chaseTarget = new THREE.Vector3(2, 3.7, 0);
+      				player2.chaseTarget = new THREE.Vector3(2, 3.7, 2);
 	  					player2.jumpWaitTime = jumpTarget[1];
 	  					player2.jumpV = new THREE.Vector3(0, 5, 0);
 	  					player2.jumpIsOn = true;
@@ -595,7 +555,7 @@ player.prototype.update = function(dT){
           else if(this.num === 2) {
           	if(player1.state === 6) {
             	player1.state = 5; //殺球
-      				player1.chaseTarget = new THREE.Vector3(2, 3.7, 0);
+      				player1.chaseTarget = new THREE.Vector3(2, 3.7, -2);
 	  					player1.jumpWaitTime = jumpTarget[1];
 	  					player1.jumpV = new THREE.Vector3(0, 5, 0);
 	  					player1.jumpIsOn = true;
@@ -609,6 +569,7 @@ player.prototype.update = function(dT){
     		slapSound.play();
       }
       this.state = 2;
+      this.board.mesh.position.y = 1.1;
     }
     
   	//追落點
@@ -616,9 +577,10 @@ player.prototype.update = function(dT){
   	this.board.pos.copy(this.board.mesh.position);
 		this.board.step(dT);
   	this.board.mesh.position.x = this.board.pos.x;
+    this.board.mesh.position.y = 2;
   	this.board.mesh.position.z = this.board.pos.z;
-    if(this.npc) var frontOrBack = -0.8;
-    else var frontOrBack = 0.8;	this.robot.hitBallMachine.position.set(this.board.mesh.position.x+frontOrBack, 0.4, this.board.mesh.position.z);
+    if(this.npc) var frontOrBack = -0.9;
+    else var frontOrBack = 0.9;	this.robot.hitBallMachine.position.set(this.board.mesh.position.x+frontOrBack, 0.4, this.board.mesh.position.z);
   }
   
   
@@ -638,15 +600,12 @@ player.prototype.update = function(dT){
     robotPosTemp.copy(this.robot.hitBallMachine.position);
     if(robotPosTemp.sub(ball.mesh.position).length()<5 && this.preTarget.x==0 && this.preTarget.z==0){
     	this.makeTarget();
-      //console.log("makeTarget fin");
     }
     
     if(this.preTarget.x!=0 && this.preTarget.z!=0){
     	var gotTargetAngle = this.makeTargetAngle()/Math.PI*180%180;
       var robotY = this.robot.hitBallMachine.rotation.y/Math.PI*180%180;
-      
-      //console.log(gotTargetAngle+" "+ robotY);
-      //this.robot.hitBallMachine.rotation.y = gotTargetAngle;
+
       if(gotTargetAngle>robotY)
       	this.robot.hitBallMachine.rotation.y +=dT;
       else
@@ -659,6 +618,8 @@ player.prototype.update = function(dT){
       var r1 = r.clone().sub(n.clone().multiplyScalar(r.clone().dot(n))).lengthSq();
       if (Math.abs(r1) <= 0.16) { //球在板子(手)的範圍內     
         if(this.isLeft) {  
+        	referee.npcLastMode = 4;
+          referee.whoLastHit = 2;
         	this.passTarget(this.preTarget);
           this.preTarget.set(0,0,0);
         }
@@ -703,23 +664,17 @@ player.prototype.update = function(dT){
     	this.updateAngleLeft += dT*5;
     	this.updateAngleRight +=  dT*5;	
 	}
-	//if(this.jumpWaitTime<0.1 && this.jumpWaitTime>-0.1 )
-		//console.log(this.robot.handRight.localToWorld(new THREE.Vector3(0,0,0)));
-		
 	
   var robotPosTemp = new THREE.Vector3(0, 0, 0);
     robotPosTemp.copy(this.robot.hitBallMachine.position);
     if(robotPosTemp.sub(ball.mesh.position).length()<3 && this.preTarget.x==0 && this.preTarget.z==0){
     	this.makeTarget();
-      //console.log("makeTarget fin");
     }
     
     if(this.preTarget.x!=0 && this.preTarget.z!=0){
     	var gotTargetAngle = this.makeTargetAngle()/Math.PI*180%180;
       var robotY = this.robot.hitBallMachine.rotation.y/Math.PI*180%180;
       
-      //console.log(gotTargetAngle+" "+ robotY);
-      //this.robot.hitBallMachine.rotation.y = gotTargetAngle;
       if(gotTargetAngle>robotY)
       	this.robot.hitBallMachine.rotation.y +=dT;
       else
@@ -767,8 +722,7 @@ player.prototype.update = function(dT){
 	this.board.mesh.position.z = this.board.pos.z;
 	if(this.npc) var frontOrBack = -0.8;
 	else var frontOrBack = 0.8;	
-	
-	//this.robot.hitBallMachine.position.x = this.board.mesh.position.x;
+
 	this.robot.hitBallMachine.position.x = this.board.mesh.position.x+frontOrBack;
 	this.robot.hitBallMachine.position.z = this.board.mesh.position.z;
 
@@ -829,7 +783,112 @@ player.prototype.update = function(dT){
   else if(this.state === 8){
     return;
   }
+  else if(this.state === 9){ //做球
+  	var n = rotation(new THREE.Vector3(0, 1, 0), this.board.mesh.rotation.z, 0); //板子(手)的法線向量
+		var p0 = this.board.mesh.localToWorld(new THREE.Vector3(0, -0.1, 0)); 
+    // p0為板子(手)上的一點
+    
+    var distance = ball.mesh.position.clone().sub(this.board.mesh.localToWorld(new THREE.Vector3(0, 0.3, 0))).lengthSq(); //球與板子(手)的距離
+    
+    if(distance < 3) { //球跟板子(手)距離小於3，手就開始往上揮
+    	this.board.mesh.position.add(n.clone().multiplyScalar(dT*3));
+    	this.updateAngleLeft += dT*3;
+    	this.updateAngleRight +=  dT*3;
+    
+    }
+    
+    var gotTargetAngle = this.makeTargetAngle()/Math.PI*180%180;
+    var robotY = this.robot.hitBallMachine.rotation.y/Math.PI*180%180;
+    
+    if(gotTargetAngle>robotY)
+      this.robot.hitBallMachine.rotation.y +=dT;
+    else
+      this.robot.hitBallMachine.rotation.y -=dT;
+      
+    if (!ball.collisionDetection(ball.mesh.position, p0, n)){	
+    //球運動到跟板子(手)同平面
+    	var r = ball.mesh.position.clone().sub(p0);
+      var r1 = r.clone().sub(n.clone().multiplyScalar(r.clone().dot(n))).lengthSq();
+      if (Math.abs(r1) <= 0.16) { //球在板子(手)的範圍內      	
+      	if(this.isLeft) {
+        	referee.npcLastMode = 3;
+        	referee.whoLastHit = 2;
+          if(this.num === 1) var tmp = this.predict(new THREE.Vector3(-2, 0, 2)); //算出到(x, 0, z)的速度與角度
+          else var tmp = this.predict(new THREE.Vector3(-2, 0, -2));
+          var jumpTarget = this.predictY(tmp[0], tmp[1], tmp[2], 3.7);
+  ball.shoot(rotation(new THREE.Vector3(tmp[0], 0, 0), tmp[1], tmp[2]));
   
+          if(!(jumpTarget[1] < 2)) jumpTarget[1] = 1;
+          if(this.num === 1) {
+          	if(npcPlayer2.state === 6) {
+            	npcPlayer2.state = 5; //殺球
+      				npcPlayer2.chaseTarget = new THREE.Vector3(-2, 3.7, 2);
+	  					npcPlayer2.jumpWaitTime = jumpTarget[1];
+	  					npcPlayer2.jumpV = new THREE.Vector3(0, 5, 0);
+	  					npcPlayer2.jumpIsOn = true;
+              npcPlayer2.chaseTarget = jumpTarget[0];
+							npcPlayer2.board.vel = new THREE.Vector3(0, 0, 0);
+            }
+          }
+          else if(this.num === 2) {
+          	if(npcPlayer1.state === 6) {
+            	npcPlayer1.state = 5; //殺球
+      				npcPlayer1.chaseTarget = new THREE.Vector3(-2, 3.7, -2);
+	  					npcPlayer1.jumpWaitTime = jumpTarget[1];
+	  					npcPlayer1.jumpV = new THREE.Vector3(0, 5, 0);
+	  					npcPlayer1.jumpIsOn = true;
+              npcPlayer1.chaseTarget = jumpTarget[0];
+							npcPlayer1.board.vel = new THREE.Vector3(0, 0, 0);
+            }
+          }
+        }
+        else {
+        	referee.playerLastMode = 3;
+        	referee.whoLastHit = 1;
+          if(this.num === 1) var tmp = this.predict(new THREE.Vector3(2, 0, 2)); //算出到(x, 0, z)的速度與角度
+          else var tmp = this.predict(new THREE.Vector3(2, 0, -2));
+          var jumpTarget = this.predictY(tmp[0], tmp[1], tmp[2], 3.7);
+  ball.shoot(rotation(new THREE.Vector3(tmp[0], 0, 0), tmp[1], tmp[2]));
+					if(!(jumpTarget[1] < 2)) jumpTarget[1] = 1;
+          if(this.num === 1) {
+          	if(player2.state === 6) {
+            	player2.state = 5; //殺球
+      				player2.chaseTarget = new THREE.Vector3(2, 3.7, 2);
+	  					player2.jumpWaitTime = jumpTarget[1];
+	  					player2.jumpV = new THREE.Vector3(0, 5, 0);
+	  					player2.jumpIsOn = true;
+              player2.chaseTarget = jumpTarget[0];
+              player2.board.vel = new THREE.Vector3(0, 0, 0);
+            }
+          }
+          else if(this.num === 2) {
+          	if(player1.state === 6) {
+            	player1.state = 5; //殺球
+      				player1.chaseTarget = new THREE.Vector3(2, 3.7, -2);
+	  					player1.jumpWaitTime = jumpTarget[1];
+	  					player1.jumpV = new THREE.Vector3(0, 5, 0);
+	  					player1.jumpIsOn = true;
+              player1.chaseTarget = jumpTarget[0];
+              player1.board.vel = new THREE.Vector3(0, 0, 0);
+            }
+          }
+        }
+    		slapSound.pause();
+				slapSound.currentTime = 0;
+    		slapSound.play();
+      }
+      this.state = 2;
+    }
+    
+  	//追落點
+  	this.board.target.copy(this.chaseTarget);
+  	this.board.pos.copy(this.board.mesh.position);
+		this.board.step(dT);
+  	this.board.mesh.position.x = this.board.pos.x;
+  	this.board.mesh.position.z = this.board.pos.z;
+    if(this.npc) var frontOrBack = -0.9;
+    else var frontOrBack = 0.9;	this.robot.hitBallMachine.position.set(this.board.mesh.position.x+frontOrBack, 0.4, this.board.mesh.position.z);
+  }
   
   //實際改robot的數值
   
@@ -850,6 +909,7 @@ player.prototype.passTarget = function(end){
   var tmp = this.predict(end); //算出到(x, 0, z)的速度與角度
   ball.shoot(rotation(new THREE.Vector3(tmp[0], 0, 0), tmp[1], tmp[2])); //將球射出去
   var bumpTarget = this.predictY(tmp[0], tmp[1], tmp[2], 1.1); //算出球運動到y=1.1時的位置
+  var setTarget = this.predictY(tmp[0], tmp[1], tmp[2], 2);
   var jumpTarget = this.predictY(tmp[0], tmp[1], tmp[2], 3.7);
   var groundTarget = this.predictY(tmp[0], tmp[1], tmp[2], 0.2);
   //將y=1.1時的位置傳給對場的coach
@@ -857,6 +917,7 @@ player.prototype.passTarget = function(end){
   	playerCoach.isOn = true;
     playerCoach.groundTarget = groundTarget[0];
   	playerCoach.bumpTarget = bumpTarget[0];
+    playerCoach.setTarget = setTarget[0];
 		playerCoach.jumpTarget = jumpTarget[0];
 		playerCoach.jumpTime = jumpTarget[1];
 	
@@ -865,6 +926,7 @@ player.prototype.passTarget = function(end){
    	npcCoach.isOn = true;
     npcCoach.groundTarget = groundTarget[0];
   	npcCoach.bumpTarget = bumpTarget[0];
+    npcCoach.setTarget = setTarget[0];
   	npcCoach.jumpTarget = jumpTarget[0];
 		npcCoach.jumpTime = jumpTarget[1];
   }
