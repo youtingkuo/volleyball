@@ -1,4 +1,4 @@
-<html><head>
+﻿<html><head>
 <style>
 #info {
   position: absolute;
@@ -60,8 +60,15 @@ body {
 .start.btn-active {
   background-color:#ffff00;
 }
-</style>
 
+</style>
+</head>
+
+<body> 
+<div id="info"></div>
+<button id='pass' class='pass'></button>
+<button id='spike' class='spike' ></button>
+<button id='start' class='start'></button>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r76/three.min.js"></script>
 <script src="https://dl.dropboxusercontent.com/u/3587259/Code/Threejs/OrbitControls.js"></script>
 <script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
@@ -70,32 +77,22 @@ body {
 <script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
 <script src="https://youtingkuo.github.io/volleyball/basicScene.js"></script>
 <script src="https://youtingkuo.github.io/volleyball/ball.js"></script>
-<script src="https://youtingkuo.github.io/volleyball/player.js"></script>
-<script src="https://youtingkuo.github.io/volleyball/referee.js"></script>
-<script src="https://youtingkuo.github.io/volleyball/linesPerson.js"></script>
-<script src="https://youtingkuo.github.io/volleyball/coach.js"></script>
 <script src="https://youtingkuo.github.io/volleyball/agent.js"></script>
 <script src="https://youtingkuo.github.io/volleyball/robot.js"></script>
+<script src="https://youtingkuo.github.io/volleyball/player.js"></script>
+<script src="https://youtingkuo.github.io/volleyball/referee.js"></script>
+<script src="https://youtingkuo.github.io/volleyball/coach.js"></script>
 <audio id="soundtrack" autoplay loop style="display:none"></audio>
 <audio id="slapSound" style="display:none">
-<source src="https://youtingkuo.github.io/sound/slap.mp3" type='audio/mp3'>
-</audio>
+<source src="https://youtingkuo.github.io/sound/slap.mp3" type='audio/mp3'></audio>
 <audio id="spikeSound" style="display:none">
-<source src="https://youtingkuo.github.io/sound/spike.mp3" type='audio/mp3'>
-</audio>
-</head>
+<source src="https://youtingkuo.github.io/sound/spike.mp3" type='audio/mp3'></audio>
 
-<body> 
-<div id="info"></div>
-<button id='pass' class='pass'></button>
-<button id='spike' class='spike' ></button>
-<button id='start' class='start'></button>
 
 <script>
 var scene = new THREE.Scene();
 var renderer, camera, controls;
 var basicScene = new BasicScene (scene);
-var linesPerson = new linesPerson();
 var ball = new Ball (scene);
 var clock = new THREE.Clock();
 var referee = new referee();
@@ -339,7 +336,6 @@ var fframe2 = new THREE.Mesh(new THREE.PlaneGeometry(6.3, 0.08), new THREE.MeshB
   document.addEventListener('mousedown', onDocumentMouseDown, false);
   
   window.addEventListener('resize', onWindowResize, false);
-  window.performance = window.performance || Date;
 }
 
 function onDocumentMouseDown(event) {
@@ -516,9 +512,9 @@ function animate() {
   attackControls.update();
   keyboard.update();
   
+  
   var dT = clock.getDelta();
   referee.update();
-  linesPerson.update();
   ball.update(dT);
   npcCoach.update();
   playerCoach.update();
@@ -558,9 +554,6 @@ function animate() {
     	 referee.restartCount = 2;
         referee.startCount = false;
         ball.isOn = false;
-        linesPerson.isOn = false;
-        linesPerson.inOrOut = 0;
-        linesPerson.hitBallMachineHandRight.rotation.x = 0;
         referee.resetPlayerPosition();
     }
   }
@@ -585,7 +578,6 @@ function animate() {
   else if(npcPlayer1.state === 5) npcPlayer1.sprite.text = "spike";
   else if(npcPlayer1.state === 6) npcPlayer1.sprite.text = "spike";
   else if(npcPlayer1.state === 8) npcPlayer1.sprite.text = "waiting";
-  else if(npcPlayer1.state === 9) npcPlayer1.sprite.text = "pass";
   
   if(npcPlayer2.state === 0) npcPlayer2.sprite.text = "ready";
   else if(npcPlayer2.state === 1) npcPlayer2.sprite.text = "serve";
@@ -595,7 +587,6 @@ function animate() {
   else if(npcPlayer2.state === 5) npcPlayer2.sprite.text = "spike";
   else if(npcPlayer2.state === 6) npcPlayer2.sprite.text = "spike";
   else if(npcPlayer2.state === 8) npcPlayer2.sprite.text = "waiting";
-  else if(npcPlayer2.state === 9) npcPlayer2.sprite.text = "pass";
   
   if(player1.state === 0) player1.sprite.text = "ready";
   else if(player1.state === 1) player1.sprite.text = "serve";
@@ -605,7 +596,6 @@ function animate() {
   else if(player1.state === 5) player1.sprite.text = "spike";
   else if(player1.state === 6) player1.sprite.text = "spike";
   else if(player1.state === 8) player1.sprite.text = "waiting";
-  else if(player1.state === 9) player1.sprite.text = "pass";
   
   if(player2.state === 0) player2.sprite.text = "ready";
   else if(player2.state === 1) player2.sprite.text = "serve";
@@ -615,7 +605,6 @@ function animate() {
   else if(player2.state === 5) player2.sprite.text = "spike";
   else if(player2.state === 6) player2.sprite.text = "spike";
   else if(player2.state === 8) player2.sprite.text = "waiting";
-  else if(player2.state === 9) player2.sprite.text = "pass";
   
   player1.sprite.position.copy(player1.robot.hitBallMachine.position);
   player1.sprite.position.x -= 0.5;
