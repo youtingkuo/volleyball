@@ -2,6 +2,7 @@ var coach = function(npc) {
   this.isOn = false;
   this.npc = npc;
   this.bumpTarget = new THREE.Vector3(0, 0, 0);
+  this.setTarget = new THREE.Vector3(0, 0, 0);
   this.jumpTarget = new THREE.Vector3(0, 0, 0);
   this.groundTarget = new THREE.Vector3(0, 0, 0);
   this.jumpTime = 0;
@@ -29,7 +30,7 @@ coach.prototype.update = function() {
 		if(dis1 >= dis2) {
       if(referee.playerLastMode === 5) {
       	this.isOne = false;
-    		npcPlayer2.state = 3; //做球
+    		npcPlayer2.state = 9; //做球
       	npcPlayer2.chaseTarget = this.bumpTarget;
       }
       else if(referee.playerLastMode != 5 && this.bumpTarget.x > -4) {
@@ -41,7 +42,7 @@ coach.prototype.update = function() {
       	var needToSpike = true;
       	this.isOne = false;
     		npcPlayer2.state = 3; //做球
-      	npcPlayer2.chaseTarget = this.bumpTarget;
+      	npcPlayer2.chaseTarget = this.setTarget;
       }
       
 			tmp = Math.random() - 0.5;
@@ -50,22 +51,22 @@ coach.prototype.update = function() {
       }
       else if(needToSpike) {
       	npcPlayer1.state = 6; //殺球
-        npcPlayer1.chaseTarget = new THREE.Vector3(-2, 1.1, 0);
+        npcPlayer1.chaseTarget = new THREE.Vector3(-2, 1.1, -2);
         needToSpike = false;
       }
       else if(tmp > 0 && npcPlayer2.state != 4) {
       	npcPlayer1.state = 6; //殺球
-        npcPlayer1.chaseTarget = new THREE.Vector3(-2, 1.1, 0);
+        npcPlayer1.chaseTarget = new THREE.Vector3(-2, 1.1, -2);
       }
       else if(tmp < 0 && npcPlayer2.state != 4) {
       	npcPlayer1.state = 4; //攻擊
-      	npcPlayer1.chaseTarget = new THREE.Vector3(-2, 1.1, 0);
+      	npcPlayer1.chaseTarget = new THREE.Vector3(-2, 1.1, -2);
       }
     }
     else {
     	if(referee.playerLastMode === 5) {
       	this.isOne = false;
-    		npcPlayer1.state = 3; //做球
+    		npcPlayer1.state = 9; //做球
       	npcPlayer1.chaseTarget = this.bumpTarget;
       }
       else if(referee.playerLastMode != 5 && this.bumpTarget.x > -4) {
@@ -77,7 +78,7 @@ coach.prototype.update = function() {
       	var needToSpike = true;
       	this.isOne = false;
     		npcPlayer1.state = 3; //做球
-      	npcPlayer1.chaseTarget = this.bumpTarget;
+      	npcPlayer1.chaseTarget = this.setTarget;
       }
 
       tmp = Math.random() - 0.5;
@@ -86,16 +87,16 @@ coach.prototype.update = function() {
       }
       else if(needToSpike) {
       	npcPlayer2.state = 6; //殺球
-        npcPlayer2.chaseTarget = new THREE.Vector3(-2, 1.1, 0);
+        npcPlayer2.chaseTarget = new THREE.Vector3(-2, 1.1, 2);
         needToSpike = false;
       }
       else if(tmp > 0 && npcPlayer1.state != 4) {
       	npcPlayer2.state = 6; //殺球
-        npcPlayer2.chaseTarget = new THREE.Vector3(-2, 1.1, 0);
+        npcPlayer2.chaseTarget = new THREE.Vector3(-2, 1.1, 2);
       }
       else if (tmp < 0 && npcPlayer1.state != 4){
       	npcPlayer2.state = 4; //攻擊
-      	npcPlayer2.chaseTarget = new THREE.Vector3(-2, 1.1, 0);
+      	npcPlayer2.chaseTarget = new THREE.Vector3(-2, 1.1, 2);
       }
     }
     
@@ -118,13 +119,20 @@ coach.prototype.update = function() {
     if(dis1 >= dis2) {
     	if(pass) {
       	this.isOne = false;
-    		player2.state = 3; //做球
-      	player2.chaseTarget = this.bumpTarget;
+        console.log("NPC MODE: " + referee.npcLastMode);
+        if(referee.npcLastMode === 5) {
+        	player2.state = 9;
+          player2.chaseTarget = this.bumpTarget;
+        }
+    		else {
+        	player2.state = 3; //做球
+      		player2.chaseTarget = this.setTarget;
+        }
         if(spike) {
         	player1.state = 6; //殺球
         }
         else player1.state = 4; //攻擊
-      	player1.chaseTarget = new THREE.Vector3(2, 1.1, 0);
+      	player1.chaseTarget = new THREE.Vector3(2, 1.1, -2);
       }
       else {
       	this.isOne = true;
@@ -145,13 +153,20 @@ coach.prototype.update = function() {
     else {
     	if(pass) {
       	this.isOne = false;
-    		player1.state = 3; //做球
-      	player1.chaseTarget = this.bumpTarget;
+        console.log("NPC MODE: " + referee.npcLastMode);
+        if(referee.npcLastMode === 5) {
+        	player1.state = 9;
+          player1.chaseTarget = this.bumpTarget;
+        }
+    		else {
+        	player1.state = 3; //做球
+      		player1.chaseTarget = this.setTarget;
+        }
         if(spike) {
         	player2.state = 6; //殺球
         }
         else player2.state = 4; //攻擊
-        player2.chaseTarget = new THREE.Vector3(2, 1.1, 0);
+        player2.chaseTarget = new THREE.Vector3(2, 1.1, 2);
       }
       else {
       	this.isOne = true;
