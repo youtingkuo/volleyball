@@ -21,20 +21,6 @@ var BasicScene = function (scene){
 		spotLight4.position.set( -13, 8, 10 );
 		scene.add( spotLight4 );
     
-    /*
-    var light1 = new THREE.PointLight();
-    light1.position.set(0, 10, -30);
-    scene.add(light1);
-    var light2 = new THREE.PointLight();
-    light2.position.set(0, 10, 30);
-    scene.add(light2);
-    var light3 = new THREE.PointLight();
-    light3.position.set(-30, 10, 0);
-    scene.add(light3);
-    var light4 = new THREE.PointLight();
-    light4.position.set(30, 10, 0);
-    scene.add(light4);
-    */
     THREE.ImageUtils.crossOrigin = '';
     var geometry = new THREE.CylinderGeometry( 50, 50, 50, 32, 32 );
 		var material = new THREE.MeshBasicMaterial ({map: THREE.ImageUtils.loadTexture('https://i.imgur.com/fJxaqVc.jpg'),  side:THREE.DoubleSide});
