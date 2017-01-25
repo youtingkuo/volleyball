@@ -38,7 +38,9 @@ var Ball = function (scene){
     		npcPlayer2.board.vel = new THREE.Vector3(0, 0, 0);
    	 	}
     	if(referee.whoLastHit === 1) {
-      	if(this.mesh.position.x > -8 && this.mesh.position.x < 0 && this.mesh.position.z < 4 && this.mesh.position.z > -4) {
+      	if(this.mesh.position.x > -7.7 && this.mesh.position.x < 0 && this.mesh.position.z < 3.8 && this.mesh.position.z > -3.8) {
+        	linesPerson.isOn = true;
+          linesPerson.inOrOut = 1;
         	referee.rHandUp = true;
           referee.whoServe = 2;
           pPoint++;
@@ -50,6 +52,8 @@ var Ball = function (scene){
           }
         }
         else {
+        	linesPerson.isOn = true;
+          linesPerson.inOrOut = 2;
       		referee.lHandUp = true;
           referee.whoServe = 1;
           nPoint++;
@@ -63,7 +67,7 @@ var Ball = function (scene){
         referee.whoLastHit = 0;
       }
       else if(referee.whoLastHit === 2) {
-      	if(this.mesh.position.x < 8 && this.mesh.position.x > 0 && this.mesh.position.z < 4 && this.mesh.position.z > -4) {
+      	if(this.mesh.position.x < 7.8 && this.mesh.position.x > 0 && this.mesh.position.z < 3.8 && this.mesh.position.z > -3.8) {
         	referee.lHandUp = true;
           referee.whoServe = 1;
           nPoint++;
@@ -87,8 +91,6 @@ var Ball = function (scene){
         }
         referee.whoLastHit = 0;
       }
-    	//referee.playing = false; //遊戲停止
-      //referee.resetPlayerPosition();
       referee.startCount = true;
       player1.state = 8;
       player2.state = 8;
