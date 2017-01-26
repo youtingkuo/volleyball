@@ -27,21 +27,21 @@ coach.prototype.update = function() {
     var dis2 = this.bumpTarget.clone().sub(npcPlayer2.board.mesh.position.clone()).lengthSq();
 	  //這邊要一個if來判斷攻擊方式?
 ///////////////////////////////////////////////////////////// 
-		if(dis1 >= dis2) {
-      if(referee.playerLastMode === 5) {
-      	this.isOne = false;
-    		npcPlayer2.state = 9; //做球
+	if(dis1 >= dis2) {
+	  if(this.bumpTarget.x > -4) {
+		this.isOne = true;
+      	npcPlayer2.state = 4; //攻擊
       	npcPlayer2.chaseTarget = this.bumpTarget;
       }
-      else if(referee.playerLastMode != 5 && this.bumpTarget.x > -4) {
-				this.isOne = true;
-      	npcPlayer2.state = 4; //攻擊
+      else if(referee.playerLastMode === 5) {
+      	this.isOne = false;
+    	npcPlayer2.state = 9; //做球
       	npcPlayer2.chaseTarget = this.bumpTarget;
       }
       else {
       	var needToSpike = true;
       	this.isOne = false;
-    		npcPlayer2.state = 3; //做球
+    	npcPlayer2.state = 3; //做球
       	npcPlayer2.chaseTarget = this.setTarget;
       }
       
@@ -64,22 +64,22 @@ coach.prototype.update = function() {
       }
     }
     else {
-    	if(referee.playerLastMode === 5) {
-      	this.isOne = false;
+		if(this.bumpTarget.x > -4) {
+			this.isOne = true;
+			npcPlayer1.state = 4; //攻擊
+			npcPlayer1.chaseTarget = this.bumpTarget;
+		}
+    	else if(referee.playerLastMode === 5) {
+			this.isOne = false;
     		npcPlayer1.state = 9; //做球
-      	npcPlayer1.chaseTarget = this.bumpTarget;
-      }
-      else if(referee.playerLastMode != 5 && this.bumpTarget.x > -4) {
-				this.isOne = true;
-      	npcPlayer1.state = 4; //攻擊
-      	npcPlayer1.chaseTarget = this.bumpTarget;
-      }
-      else{
-      	var needToSpike = true;
-      	this.isOne = false;
+			npcPlayer1.chaseTarget = this.bumpTarget;
+		}
+		else{
+			var needToSpike = true;
+			this.isOne = false;
     		npcPlayer1.state = 3; //做球
-      	npcPlayer1.chaseTarget = this.setTarget;
-      }
+			npcPlayer1.chaseTarget = this.setTarget;
+		}
 
       tmp = Math.random() - 0.5;
       if(npcPlayer1.state === 4) {
