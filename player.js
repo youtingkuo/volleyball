@@ -107,9 +107,7 @@ player.prototype.serve = function(dT){
 
 player.prototype.normalServe = function(dT){
 		if (this.serveIsOn === false) return;
-    //console.log(this.state);
 		var now = clock.getElapsedTime();
-      //console.log(this.serveState)
     if(ball.isOn === false)//球跟著手
   		ball.mesh.position.copy(this.robot.handRight.localToWorld(new THREE.Vector3(0,0,0)));//NPC的話其實是左手
 		
@@ -131,9 +129,6 @@ player.prototype.normalServe = function(dT){
 		this.serveState = 1;
 	}
     if (this.serveState == 1 && this.serveAngleRight < Math.PI &&  ball.isOn === false){
-			//ball.isOn=true;
-      //ball.shoot(new THREE.Vector3(8, 9, 0));
-      //console.log(ball.mesh.position);
       ball.isOn = true;
       this.passTarget(this.serveTarget);
       spikeSound.pause();
@@ -174,7 +169,6 @@ player.prototype.normalServe = function(dT){
 player.prototype.jumpServe = function(dT){//dT其實是傳給jump用的，發球動作是用jumpStartTime
 	if (this.jumpServeIsOn === false) return;
 	var now = clock.getElapsedTime();
-	//console.log(this.jumpServeState)
     if(ball.isOn === false)//球跟著手
   		ball.mesh.position.copy(this.robot.handRight.localToWorld(new THREE.Vector3(0,0,0)));//NPC的話其實是左手
 	if(this.jumpServeState == 0){
@@ -204,7 +198,6 @@ player.prototype.jumpServe = function(dT){//dT其實是傳給jump用的，發球
 	if(this.jumpServeState == 2){
 		var ballY =  ball.mesh.position.y;
 		var handY = this.robot.handRight.localToWorld(new THREE.Vector3(0,0,0)).y;
-		//console.log(Math.abs(ballY-handY));
 		if(Math.abs(ballY-handY)<0.85){
 		  this.jumpServeState = 3;
 		  this.jumpStartTime = clock.getElapsedTime();
@@ -245,13 +238,6 @@ player.prototype.jumpServe = function(dT){//dT其實是傳給jump用的，發球
 
 player.prototype.jump = function(dT){
   if (this.jumpIsOn === false) return;
-	//console.log(this.robot.hitBallMachine.position.y);
-	/*
-  if(this.jumpV.y==5)
-	this.recordTime = 0;
-  else
-	this.recordTime+=dT;
-*/
   var f = new THREE.Vector3(0, -9.8, 0);
   var robotPos = new THREE.Vector3(0, 0, 0);
   this.jumpV.add ( f.clone().multiplyScalar(dT) );
@@ -268,46 +254,34 @@ player.prototype.jump = function(dT){
 }
 
 player.prototype.bisection = function(v0,theta,length,ys,ye){//predict bisection
-	return (v0*Math.cos(theta)*(1*v0*Math.sin(theta)+Math.sqrt( v0*Math.sin(theta)*v0*Math.sin(theta) - 2*9.8*(ye-ys) ))-length*9.8);
+	return (v0*Math.cos(theta)*(-1*v0*Math.sin(theta)+Math.sqrt( v0*Math.sin(theta)*v0*Math.sin(theta) - 2*9.8*(ye-ys) ))-length*9.8);
 }
 
 player.prototype.predict = function(end){//傳進預測點end
 
-	var predictTargetPos = new THREE.Vector3(0, 0, 0);
-  predictTargetPos.copy(end); 
-  /*
+	var predictTargetPosForSpike = new THREE.Vector3(0, 0, 0);
+  predictTargetPosForSpike.copy(end); 
+  
   end.y=ball.mesh.position.y;
   var predictTargetPos = new THREE.Vector3(0, 0, 0);
   predictTargetPos.copy(end); //為不改變end值，這邊複製給另外一個
   var length = predictTargetPos.sub(ball.mesh.position).length(); //計算目前位置跟預測點的水平距離
-*/
+
   if(this.state===1 ){
       var theta = 25/180*Math.PI;
+      var v0 = Math.sqrt(length*9.8/Math.sin(2*theta));
     }
     else if(this.state===5){
-      var theta = 0;//-10/180*Math.PI;
-    }
-    else if(this.state===3 || this.state===9){
-    	if(length < 2.5){
-        var theta = 82.5/180*Math.PI;
-      }
-      else{
-        var theta = 75/180*Math.PI;
-      }
-    }
-    else{
-      var theta = 50/180*Math.PI;
-    }
-    
-    
+    	
   		var ballCopy  = new THREE.Vector3(0, 0, 0);
   		ballCopy.copy(ball.mesh.position);
-      var ye = predictTargetPos.y;
+      var ye = predictTargetPosForSpike.y;
       ballCopy.y=ye;
       
-      length = predictTargetPos.sub(ballCopy).length();
+      length = predictTargetPosForSpike.sub(ballCopy).length();
       
       var ys = ball.mesh.position.y;
+      var theta = 0;//-10/180*Math.PI;
       var v0 = 0;
       
       var a = 0;
@@ -315,8 +289,8 @@ player.prototype.predict = function(end){//傳進預測點end
       var e = 0.0001;
       while(1){
       	var m = (a+b)/2;
-        var fm = this.bisection(m,theta,length,ys,0);
-        var fa = this.bisection(a,theta,length,ys,0);
+        var fm = this.bisection(m,theta,length,ys,ye);
+        var fa = this.bisection(a,theta,length,ys,ye);
         if(fm*fa<0)
         	b = m;
         else
@@ -326,27 +300,42 @@ player.prototype.predict = function(end){//傳進預測點end
         	break;
         }
       }
-    end.y=ball.mesh.position.y;
-  	var predictTargetTemp = new THREE.Vector3(0, 0, 0);
-    predictTargetTemp.copy(end);
+      
+    }
+    else if(this.state===3 || this.state===9){
+    	if(length < 2.5){
+        var theta = 82.5/180*Math.PI;
+        var v0 = Math.sqrt(length*9.8/Math.sin(2*theta));
+      }
+      else{
+        var theta = 75/180*Math.PI;
+        var v0 = Math.sqrt(length*9.8/Math.sin(2*theta));
+      }
+    }
+    else{
+      var theta = 50/180*Math.PI;
+      var v0 = Math.sqrt(length*9.8/Math.sin(2*theta));
+    }
+    
+	predictTargetPos.copy(end);
     var ballPos = new THREE.Vector3(0, 0, 0);
     ballPos.copy(ball.mesh.position);
     var temp3 = new THREE.Vector3(1, 0, 0);
     
     if(ball.mesh.position.z<end.z)
-    	var phi = -1* temp3.angleTo(predictTargetTemp.sub(ballPos));
+    	var phi = -1* temp3.angleTo(predictTargetPos.sub(ballPos));
     else
-    	var phi = 1* temp3.angleTo(predictTargetTemp.sub(ballPos));
+    	var phi = 1* temp3.angleTo(predictTargetPos.sub(ballPos));
     
     return [v0, theta, phi];
 }
+
 player.prototype.predictY = function(v0, theta, phi, ye){
   var ys = ball.mesh.position.y;
   var a = 4.9; // 9.8/2
   var b = -v0 * Math.sin(theta);
   var c = ye - ys;
   var t = (b*(-1) + Math.sqrt(Math.pow(b, 2) - 4*a*c)) / (2*a);
-  //console.log(t);
   
   var L = v0 * Math.cos(theta) * t;
   var movement = new THREE.Vector3(L, 0, 0);
@@ -355,22 +344,12 @@ player.prototype.predictY = function(v0, theta, phi, ye){
   var finalP = new THREE.Vector3( 0, 0, 0 );
   finalP.addVectors(ball.mesh.position.clone(), movement);
   finalP.y = ye;
-  /*
-	var predictMesh = new THREE.Mesh(new THREE.SphereGeometry(0.2, 32, 32), new THREE.MeshBasicMaterial({transparent: true, 
-						 side:THREE.DoubleSide,color: 0x00ffff}));
-	predictMesh.position.copy(finalP);
-	scene.add(predictMesh);	
-*/
-  
-  
   
   return [finalP,t];
 }
 
 player.prototype.makeTarget = function(){
 //npc判斷
-	
-  //predictMesh.position.clone();
 	if(this.state === 4){
     var x = Math.random() * 5 + 2.5;
     var z = Math.random() * 7 - 3.5;
@@ -380,7 +359,7 @@ player.prototype.makeTarget = function(){
       if(x < 3.5) {
         if(z < 2 && z > -2) z = 2.5;
       }
-      this.preTarget.set(x,1.1,z);
+      this.preTarget.set(x,0,z);
     }
   }
   else if(this.state === 5) {
@@ -461,11 +440,10 @@ player.prototype.update = function(dT){
 			ball.isOn = false;
   		referee.playing = true;
   		var tmp = Math.random();
-      //console.log(tmp);
   		if(tmp > 0.5)
-				npcPlayer1.startJump(new THREE.Vector3(5, 0, 0),new THREE.Vector3(0, 5, 0),0.1);  
+				npcPlayer1.startJump(new THREE.Vector3(2, 2.51, 0),new THREE.Vector3(0, 5, 0),0.1);  
   		else 
-				npcPlayer1.startServe(new THREE.Vector3(5, 0, 0));
+				npcPlayer1.startServe(new THREE.Vector3(2, 2.51, 0));
         
       player1.state = 2;
      	player2.state = 2;
@@ -481,8 +459,6 @@ player.prototype.update = function(dT){
 	//if(this.state === 0 || this.state === 1) return;
   
   else if(this.state === 2){ //standBy
-  //console.log(this.isLeft);
-	//console.log(this.robot.hitBallMachine.rotation.y);
   	if(Math.abs(Math.PI/2-this.robot.hitBallMachine.rotation.y)>0.1){
       if(this.robot.hitBallMachine.rotation.y<Math.PI/2)
       	this.robot.hitBallMachine.rotation.y +=dT;
@@ -624,15 +600,12 @@ player.prototype.update = function(dT){
     robotPosTemp.copy(this.robot.hitBallMachine.position);
     if(robotPosTemp.sub(ball.mesh.position).length()<5 && this.preTarget.x==0 && this.preTarget.z==0){
     	this.makeTarget();
-      //console.log("makeTarget fin");
     }
     
     if(this.preTarget.x!=0 && this.preTarget.z!=0){
     	var gotTargetAngle = this.makeTargetAngle()/Math.PI*180%180;
       var robotY = this.robot.hitBallMachine.rotation.y/Math.PI*180%180;
-      
-      //console.log(gotTargetAngle+" "+ robotY);
-      //this.robot.hitBallMachine.rotation.y = gotTargetAngle;
+
       if(gotTargetAngle>robotY)
       	this.robot.hitBallMachine.rotation.y +=dT;
       else
@@ -691,23 +664,17 @@ player.prototype.update = function(dT){
     	this.updateAngleLeft += dT*5;
     	this.updateAngleRight +=  dT*5;	
 	}
-	//if(this.jumpWaitTime<0.1 && this.jumpWaitTime>-0.1 )
-		//console.log(this.robot.handRight.localToWorld(new THREE.Vector3(0,0,0)));
-		
 	
   var robotPosTemp = new THREE.Vector3(0, 0, 0);
     robotPosTemp.copy(this.robot.hitBallMachine.position);
     if(robotPosTemp.sub(ball.mesh.position).length()<3 && this.preTarget.x==0 && this.preTarget.z==0){
     	this.makeTarget();
-      //console.log("makeTarget fin");
     }
     
     if(this.preTarget.x!=0 && this.preTarget.z!=0){
     	var gotTargetAngle = this.makeTargetAngle()/Math.PI*180%180;
       var robotY = this.robot.hitBallMachine.rotation.y/Math.PI*180%180;
       
-      //console.log(gotTargetAngle+" "+ robotY);
-      //this.robot.hitBallMachine.rotation.y = gotTargetAngle;
       if(gotTargetAngle>robotY)
       	this.robot.hitBallMachine.rotation.y +=dT;
       else
@@ -755,8 +722,7 @@ player.prototype.update = function(dT){
 	this.board.mesh.position.z = this.board.pos.z;
 	if(this.npc) var frontOrBack = -0.8;
 	else var frontOrBack = 0.8;	
-	
-	//this.robot.hitBallMachine.position.x = this.board.mesh.position.x;
+
 	this.robot.hitBallMachine.position.x = this.board.mesh.position.x+frontOrBack;
 	this.robot.hitBallMachine.position.z = this.board.mesh.position.z;
 
