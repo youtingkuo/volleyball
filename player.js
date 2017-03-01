@@ -351,7 +351,7 @@ player.prototype.predictY = function(v0, theta, phi, ye){
 player.prototype.makeTarget = function(){
 //npc判斷
 	if(this.state === 4){
-    var x = Math.random() * 5 + 2.5;
+    var x = Math.random() * 4 + 2.5;
     var z = Math.random() * 7 - 3.5;
     this.preTarget.copy(predictMesh.position);
     if(this.isLeft){
@@ -363,7 +363,7 @@ player.prototype.makeTarget = function(){
     }
   }
   else if(this.state === 5) {
-	  var x = Math.random() * 3 + 4.5;
+	  var x = Math.random() * 2 + 4.5;
       var z = Math.random() * 5 - 2.5;
       if(x < 5.5) {
           	if(z < 3 && z > -3) {
