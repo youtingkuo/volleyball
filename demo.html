@@ -63,8 +63,8 @@ body {
 }
 </style>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r76/three.min.js"></script>
-<script src="https://dl.dropboxusercontent.com/u/3587259/Code/Threejs/OrbitControls.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.min.js"></script>
+<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 <script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
 <script src="https://rawgit.com/jyunming-chen/tutsplus/master/js/text2D.js"></script>
 <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
@@ -171,7 +171,7 @@ function init() {
   camera.position.set(16.5, 7, 0);
   controls = new THREE.OrbitControls(camera, renderer.domElement);
   
-  //ÂIÀ»¸¨ÂI
+  //é»žæ“Šè½é»ž
   attackCamera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
   attackCamera.position.set(30, 0, 0);
   attackControls = new THREE.OrbitControls(attackCamera, renderer.domElement);
@@ -181,7 +181,7 @@ function init() {
   renderer.autoClear = false;
   sceneHUD = new THREE.Scene();
   
-  //¤£¦PviewªºHUD
+  //ä¸åŒviewçš„HUD
 var fframe = new THREE.Mesh(new THREE.PlaneGeometry(5.1, 0.08), new THREE.MeshBasicMaterial({
     color: 0xff0000,
     depthTest: false
@@ -238,7 +238,7 @@ var fframe2 = new THREE.Mesh(new THREE.PlaneGeometry(6.3, 0.08), new THREE.MeshB
   predictMesh.position.set(-4, 1.1, 1);
  	scene.add(predictMesh);	
   
-  //°O¤ÀªO
+  //è¨˜åˆ†æ¿
   	var scoreBoard = new THREE.Object3D();
     scoreBoard.position.set(0, 0, -6.5);
     scoreBoard.rotation.y = 1.3;
@@ -566,7 +566,7 @@ function animate() {
     }
   }
   
-  //§ðÀ»ÂI¾Þ§@
+  //æ”»æ“Šé»žæ“ä½œ
     if (keyboard.pressed("up")) {
   	if (predictMesh.position.x > -7.3) predictMesh.position.x -= 0.1; 
   } if (keyboard.pressed("down")) {
@@ -577,7 +577,7 @@ function animate() {
 		if (predictMesh.position.z > -3.5) predictMesh.position.z -= 0.1;
   } 
   
-  //ª¬ºAÅã¥Ü
+  //ç‹€æ…‹é¡¯ç¤º
   if(npcPlayer1.state === 0) npcPlayer1.sprite.text = "ready";
   else if(npcPlayer1.state === 1) npcPlayer1.sprite.text = "serve";
   else if(npcPlayer1.state === 2) npcPlayer1.sprite.text = "stand by";
